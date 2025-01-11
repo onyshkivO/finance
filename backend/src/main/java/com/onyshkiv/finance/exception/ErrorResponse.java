@@ -1,17 +1,32 @@
 package com.onyshkiv.finance.exception;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
-@Data
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
+import java.util.Date;
+
 public class ErrorResponse {
-    private int errorCode;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd hh:mm:ss", timezone = "UTC")
+    private final Date timestamp;
+    private int status;
     private String message;
-    private long timestamp;
+
+    private ErrorResponse() {
+        timestamp = new Date();
+    }
+
+    private ErrorResponse(int status) {
+        this();
+        this.status = status;
+    }
+
+    public ErrorResponse(int status, Throwable ex) {
+        this(status);
+        this.message = ex.getMessage();
+    }
+
+    public ErrorResponse(int status, String message) {
+        this(status);
+        this.message = message;
+    }
 }
 

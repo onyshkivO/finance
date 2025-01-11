@@ -4,13 +4,11 @@ import com.onyshkiv.finance.model.entity.User;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
-@Service
 @Getter
 public class CustomUserDetails implements UserDetails {
     private UUID id;

@@ -1,6 +1,5 @@
 package com.onyshkiv.finance.model.dto.request;
 
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -13,22 +12,15 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class RegisterRequest {
-
+public class SignInRequest {
     @Pattern(regexp = "^(?=.{4,20}$)(?![_.])(?!.*[_.]{2})[a-zA-Z0-9._]+(?<![_.])$", message = "Bad user login")
     @Size(min = 5, max = 50, message = "User login should be between 5 and 50 symbols")
     @NotBlank(message = "login should exists")
     private String login;
-
-    @Size(min = 5, max = 255, message = "User email should be between 5 and 50 symbols")
-    @NotBlank(message = "Email should exists")
-    @Email(message = "Email should be in email format")
-    private String email;
 
     @NotBlank(message = "Password should exists")
     @Pattern(regexp = "^[$\\/A-Za-z0-9_-]{6,60}$", message = "Bad password format")
     @Size(min = 5, max = 50, message = "User password should be between 5 and 50 symbols")
     private String password;
 }
-
 

@@ -22,7 +22,7 @@ public class SecurityContextHelper {
 
     private static UserDataDto getUserPrincipal() {
         UserDataDto user = (UserDataDto) Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication().getPrincipal())
-                .orElseGet(UnauthorizedException::new);
+                .orElseThrow(() -> new UnauthorizedException("User not found in context"));
 
         Preconditions.checkState(StringUtils.isNotBlank(user.getLogin()), "login is required in context");
         Preconditions.checkState(!Objects.isNull(user.getId()), "id is required in context");
