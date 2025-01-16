@@ -1,7 +1,11 @@
 package com.onyshkiv.finance.exception;
 
-import java.util.Map;
+import lombok.Getter;
+import lombok.Setter;
 
+import java.util.Map;
+@Getter
+@Setter
 public class ValidationErrorResponse extends ErrorResponse {
     private Map<String, String> validationErrors;
 

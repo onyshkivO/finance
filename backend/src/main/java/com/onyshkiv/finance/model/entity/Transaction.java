@@ -1,0 +1,60 @@
+package com.onyshkiv.finance.model.entity;
+
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.dialect.PostgreSQLEnumJdbcType;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.util.UUID;
+
+@Entity
+@Table(name = "transaction")
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
+@Builder
+@NamedEntityGraph(
+        name = "graph.Transaction.category",
+        attributeNodes = @NamedAttributeNode(value = "category")
+)
+public class Transaction {
+
+    @Id
+    @Column(name = "id", nullable = false)
+    private UUID id;
+
+    @Column(name = "user_id", nullable = false)
+    private UUID userId;
+
+    @ManyToOne
+    @JoinColumn(name = "category_id", nullable = false)
+    private Category category;
+
+    @Enumerated
+    @Column(name = "type", nullable = false)
+    @JdbcType(PostgreSQLEnumJdbcType.class)
+    private TransactionType type;
+
+    @Column(name = "amount", nullable = false)
+    private BigDecimal amount;
+
+    @Column(name = "description")
+    private String description;
+
+    @Column(name = "transaction_date", nullable = false, columnDefinition = "date")
+    private LocalDate transactionDate;
+
+    @Column(name = "created_at", nullable = false)
+    private OffsetDateTime createdAt;
+
+    @Column(name = "updated_at", nullable = false)
+    private OffsetDateTime updatedAt;
+}

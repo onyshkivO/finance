@@ -1,5 +1,7 @@
 package com.onyshkiv.finance.exception;
 
+import org.hibernate.exception.ConstraintViolationException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -50,6 +52,22 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DuplicationException.class)
     public ResponseEntity<ErrorResponse> handleDuplicationException(DuplicationException ex) {
         return buildErrorResponse(ex.getMessage(), HttpStatus.CONFLICT);
+    }
+
+//    @ExceptionHandler(DataIntegrityViolationException.class)
+////todo better handle errors when conflict in db
+//    public ResponseEntity<ErrorResponse> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
+//        String message = (ex.getCause() instanceof ConstraintViolationException)
+//                ? ex.getMessage()
+//                : "Database error";
+//
+//        return buildErrorResponse(message, (ex.getCause() instanceof ConstraintViolationException)
+//                ? HttpStatus.CONFLICT : HttpStatus.INTERNAL_SERVER_ERROR);
+//    }
+
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNotFoundException(NotFoundException ex) {
+        return buildErrorResponse(ex.getMessage(), HttpStatus.NOT_FOUND);
     }
 
     private ResponseEntity<ErrorResponse> buildErrorResponse(String message, HttpStatus httpStatus) {
