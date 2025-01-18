@@ -55,6 +55,16 @@ public class Transaction {
     @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
 
-    @Column(name = "updated_at", nullable = false)
+    @Column(name = "updated_at")
     private OffsetDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = OffsetDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = OffsetDateTime.now();
+    }
 }

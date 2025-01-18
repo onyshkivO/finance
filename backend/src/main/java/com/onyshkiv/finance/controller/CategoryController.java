@@ -2,7 +2,9 @@ package com.onyshkiv.finance.controller;
 
 import com.onyshkiv.finance.model.dto.CategoryDto;
 import com.onyshkiv.finance.model.dto.request.NameDto;
+import com.onyshkiv.finance.model.entity.TransactionType;
 import com.onyshkiv.finance.service.CategoryService;
+import com.onyshkiv.finance.util.ValidEnum;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -45,10 +47,10 @@ public class CategoryController {
         return categoryService.getCategoryById(id);
     }
 
-    @GetMapping
+    @GetMapping("/type/{transactionType}")
     @ResponseStatus(HttpStatus.OK)
-    public List<CategoryDto> getUserCategories() {
-        return categoryService.getUserCategories();
+    public List<CategoryDto> getUserCategories(@PathVariable TransactionType transactionType) {
+        return categoryService.getUserCategories(transactionType);
     }
 
 }

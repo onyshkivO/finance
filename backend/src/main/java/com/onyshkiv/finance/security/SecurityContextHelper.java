@@ -12,7 +12,7 @@ import java.util.Optional;
 
 @Component
 public class SecurityContextHelper {
-    public UserDataDto getLoggedInUser() {
+    public CustomUserDetails getLoggedInUser() {
         return getUserPrincipal();
     }
 
@@ -20,8 +20,8 @@ public class SecurityContextHelper {
         getUserPrincipal();
     }
 
-    private static UserDataDto getUserPrincipal() {
-        UserDataDto user = (UserDataDto) Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication().getPrincipal())
+    private static CustomUserDetails getUserPrincipal() {
+        CustomUserDetails user = (CustomUserDetails) Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication().getPrincipal())
                 .orElseThrow(() -> new UnauthorizedException("User not found in context"));
 
         Preconditions.checkState(StringUtils.isNotBlank(user.getLogin()), "login is required in context");

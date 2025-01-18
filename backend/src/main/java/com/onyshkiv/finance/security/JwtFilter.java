@@ -35,7 +35,8 @@ public class JwtFilter extends OncePerRequestFilter {
         this.userDetailsService = userDetailsService;
         this.objectMapper = objectMapper;
     }
-
+//todo якщо на логін, який не потребує токена відсилати запит з невалідним токеном, то тут впаде помилка, зараз бачу варіант хіба додавати якийсь whitelist,
+// щоб не перевіряти токен на ті ендпроінти, але так як це будуть робитися запити з фронту, то не будуть там передавати токен на ці ендпоінти
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         try {

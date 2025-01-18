@@ -1,5 +1,6 @@
 package com.onyshkiv.finance.model.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.onyshkiv.finance.model.entity.TransactionType;
 import com.onyshkiv.finance.util.ValidEnum;
 import jakarta.validation.constraints.Min;
@@ -36,5 +37,6 @@ public class TransactionDto {
 
     @NotNull(message = "invalid transaction date")
     @DateTimeFormat(pattern = "dd-MM-yyyy")
+    @JsonFormat(pattern = "dd-MM-yyyy")
     private LocalDate transactionDate;
 }
