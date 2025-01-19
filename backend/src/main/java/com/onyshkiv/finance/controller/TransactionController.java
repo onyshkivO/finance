@@ -47,4 +47,14 @@ public class TransactionController {
     public List<TransactionDto> getUserTransactions(@PathVariable @ValidEnum(enumClass = TransactionType.class) TransactionType transactionType) {
         return transactionService.getUserTransactions(transactionType);
     }
+
+    @PutMapping("/move-category")
+    @ResponseStatus(HttpStatus.OK)
+    public void moveTransactionsToAnotherCategory(
+            @RequestParam("sourceCategoryId") UUID sourceCategoryId,
+            @RequestParam("targetCategoryId") UUID targetCategoryId) {
+        transactionService.moveTransactionsToAnotherCategory(sourceCategoryId, targetCategoryId);
+    }
+
+
 }

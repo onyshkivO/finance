@@ -114,4 +114,14 @@ public class TransactionServiceImpl implements TransactionService {
                 .map(applicationMapper::transactionToTransactionDto)
                 .toList();
     }
+
+    @Override
+    @Transactional
+    public void moveTransactionsToAnotherCategory(UUID sourceCategoryId, UUID targetCategoryId) {
+        //validation if category exists
+        categoryService.getCategory(sourceCategoryId);
+        categoryService.getCategory(targetCategoryId);
+
+        transactionRepository.moveTransactionsToAnotherCategory(sourceCategoryId, targetCategoryId);
+    }
 }

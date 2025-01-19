@@ -92,7 +92,7 @@ public class CategoryServiceImpl implements CategoryService {
     public Category getCategory(UUID id) {
         Optional<Category> categoryOptional = categoryRepository.findById(id);
         if (categoryOptional.isEmpty()) {
-            log.error("CategoryService renameCategory : Category not found with id {}", id);
+            log.error("CategoryService : Category not found with id {}", id);
             throw new NotFoundException(String.format("Category not found with id %s", id));
         }
         return categoryOptional.get();
