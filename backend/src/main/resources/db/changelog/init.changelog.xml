@@ -118,5 +118,41 @@
                                   referencedTableName="category"
                                   validate="false"/>
     </changeSet>
+    <changeSet id="create-monobank-auth-table" author="щтнірлшм">
+        <createTable tableName="monobank_auth">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="UUID">
+                <constraints nullable="false" foreignKeyName="fk_monobank_auth_user" references="user(id)"/>
+            </column>
+            <column name="token_request_id" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="accept_url" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_activated" type="BOOLEAN" defaultValue="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP">
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="monobank_auth"
+                baseColumnNames="user_id"
+                referencedTableName="user"
+                referencedColumnNames="id"
+                constraintName="fk_monobank_auth_user"/>
+
+        <createIndex tableName="monobank_auth" indexName="idx_monobank_auth_user_id">
+            <column name="user_id"/>
+        </createIndex>
+    </changeSet>
+
 
 </databaseChangeLog>
