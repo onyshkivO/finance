@@ -47,6 +47,11 @@ public class SecurityConfig {
                     source.registerCorsConfiguration("/**", corsConfiguration);
                     return corsConfiguration;
                 }))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/mono/confirm").permitAll()
+                        .anyRequest().authenticated()
+                )
 //                .httpBasic(Customizer.withDefaults())
                 .sessionManagement(manager -> manager.sessionCreationPolicy(STATELESS))
                 .authenticationProvider(authenticationProvider())

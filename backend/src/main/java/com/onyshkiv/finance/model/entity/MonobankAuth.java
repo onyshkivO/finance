@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -18,19 +19,20 @@ import java.util.UUID;
 public class MonobankAuth {
 
     @Id
-    private UUID id;
+    @Column(name = "request_id", nullable = false, length = 255)
+    private String requestId;
 
     @Column(name = "user_id")
     private UUID userId;
 
-    @Column(name = "token_request_id", nullable = false, length = 255)
-    private String tokenRequestId;
-
     @Column(name = "accept_url", nullable = false)
     private String acceptUrl;
 
-    @Column(name = "is_activated", nullable = false)
-    private boolean isActivated = false;
+    @Column(name = "activated", nullable = false)
+    private boolean activated = false;
+
+    @OneToMany(mappedBy = "requestId", cascade = CascadeType.ALL)
+    private List<MonobankAccount> accounts;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
