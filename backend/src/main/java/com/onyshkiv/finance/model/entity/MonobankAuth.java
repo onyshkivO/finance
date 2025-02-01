@@ -19,7 +19,7 @@ import java.util.UUID;
 public class MonobankAuth {
 
     @Id
-    @Column(name = "request_id", nullable = false, length = 255)
+    @Column(name = "request_id", nullable = false)
     private String requestId;
 
     @Column(name = "user_id")

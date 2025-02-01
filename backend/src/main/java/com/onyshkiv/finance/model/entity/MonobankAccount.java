@@ -44,7 +44,7 @@ public class MonobankAccount {
     private Integer currencyCode;
 
     @Enumerated
-    @Column(name = "currency_code", nullable = false)
+    @Column(name = "type", nullable = false)
     @JdbcType(PostgreSQLEnumJdbcType.class)
     private MonobankAccountType type;
 
