@@ -50,6 +50,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/mono/confirm").permitAll()
+                        .requestMatchers("/mono/transaction").permitAll()
                         .anyRequest().authenticated()
                 )
 //                .httpBasic(Customizer.withDefaults())

@@ -19,20 +19,17 @@ import java.util.UUID;
 public class MonobankAuth {
 
     @Id
-    @Column(name = "request_id", nullable = false)
-    private String requestId;
-
     @Column(name = "user_id")
     private UUID userId;
+
+    @Column(name = "request_id", nullable = false)
+    private String requestId;
 
     @Column(name = "accept_url", nullable = false)
     private String acceptUrl;
 
     @Column(name = "activated", nullable = false)
     private boolean activated = false;
-
-    @OneToMany(mappedBy = "requestId", cascade = CascadeType.ALL)
-    private List<MonobankAccount> accounts;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;

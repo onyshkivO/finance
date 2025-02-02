@@ -33,8 +33,12 @@ public class User {
     @OneToMany(mappedBy = "userId", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Transaction> transactions;
 
-    @OneToOne(mappedBy = "userId", cascade = CascadeType.ALL)
-    private MonobankAuth monobankRequest;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id", referencedColumnName = "user_id")
+    private MonobankAuth monobankAuth;
+
+    @OneToMany(mappedBy = "userId", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<MonobankAccount> accounts;
 
     @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;

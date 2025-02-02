@@ -22,8 +22,8 @@ public class MonobankAccount {
     @Column(name = "id", nullable = false)
     private UUID id;
 
-    @Column(name = "request_id", nullable = false)
-    private String requestId;
+    @Column(name = "user_id")
+    private UUID userId;
 
     @Column(name = "client_id", nullable = false)
     private String clientId;

@@ -3,7 +3,6 @@ package com.onyshkiv.finance.util;
 import com.onyshkiv.finance.model.dto.CategoryDto;
 import com.onyshkiv.finance.model.dto.TransactionDto;
 import com.onyshkiv.finance.model.dto.monobank.MonobankClientDto;
-import com.onyshkiv.finance.model.dto.monobank.StatementItemDto;
 import com.onyshkiv.finance.model.dto.request.SignUpRequest;
 import com.onyshkiv.finance.model.entity.*;
 import org.mapstruct.Mapper;
@@ -23,10 +22,10 @@ public abstract class ApplicationMapper {
 
     public abstract TransactionDto transactionToTransactionDto(Transaction transaction);
 
-    public List<MonobankAccount> monobankClientDtoToMonobankAccountList(MonobankClientDto monobankClientDto, String requestId) {
+    public List<MonobankAccount> monobankClientDtoToMonobankAccountList(MonobankClientDto monobankClientDto, UUID userId) {
         return monobankClientDto.getAccounts().stream().map(account -> MonobankAccount.builder()
                 .id(UUID.randomUUID())
-                .requestId(requestId)
+                .userId(userId)
                 .clientId(monobankClientDto.getClientId())
                 .name(monobankClientDto.getName())
                 .accountId(account.getId())

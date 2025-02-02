@@ -19,19 +19,24 @@ import com.onyshkiv.finance.service.MonobankService;
 import com.onyshkiv.finance.util.ApplicationMapper;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
+import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
+import org.bouncycastle.openssl.PEMKeyPair;
+import org.bouncycastle.openssl.PEMParser;
+import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.Reader;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.Signature;
-import java.security.spec.PKCS8EncodedKeySpec;
+import java.time.Instant;
 import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
@@ -44,7 +49,7 @@ public class MonobankServiceImpl implements MonobankService {
     private static final String SET_WEBHOOK = "/personal/corp/webhook";
     private static final String CLIENT_INFO = "/personal/client-info";
 
-    private static final String BASIC_URI = "http://localhost:8080";
+    private static final String BASIC_URI = "https://b98a-178-212-97-148.ngrok-free.app";
     private static final String CONFIRM_WEBHOOK_URL = BASIC_URI + "/mono/confirm";
     private static final String TRANSACTION_WEBHOOK_URL = BASIC_URI + "/mono/transaction";
 
@@ -84,7 +89,7 @@ public class MonobankServiceImpl implements MonobankService {
         MonobankAuth monobankAuth = monobankAuthRepository.findByRequestId(requestId)
                 .orElseThrow(() -> new NotFoundException("Monobank not found with requestId " + requestId));
         monobankAuth.setActivated(true);
-        saveClientAccounts(requestId);
+        saveClientAccounts(requestId, monobankAuth.getUserId());
         setWebhook(requestId);
     }
 
@@ -111,12 +116,12 @@ public class MonobankServiceImpl implements MonobankService {
     private void setWebhook(String requestId) {
         try {
             String url = MONOBANK_AUTH_URL + SET_WEBHOOK;
-            String xTime = String.valueOf(System.currentTimeMillis() / 1000);
-            String xSign = generateSignature(xTime, SET_WEBHOOK, privateKeyPath);
-            RequestBody formBody = new FormBody.Builder()
-                    .add("webHookUrl", TRANSACTION_WEBHOOK_URL)
-                    .build();
+            String xTime = String.valueOf(Instant.now().getEpochSecond());
+            String xSign = generateSignature(xTime + SET_WEBHOOK, SET_WEBHOOK, privateKeyPath);
 
+            String jsonBody = "{\"webHookUrl\": \"" + TRANSACTION_WEBHOOK_URL + "\"}";
+            MediaType JSON = MediaType.get("application/json; charset=utf-8");
+            RequestBody requestBody = RequestBody.create(jsonBody, JSON);
             Request request = new Request.Builder()
                     .url(url)
                     .header("X-Key-Id", xKeyId)
@@ -124,39 +129,43 @@ public class MonobankServiceImpl implements MonobankService {
                     .header("X-Time", xTime)
                     .header("X-Sign", xSign)
                     .header("Content-Type", "application/json")
-                    .post(formBody)
+                    .post(requestBody)
                     .build();
 
             sendRequestToMonobankApi(request);
         } catch (IOException | ExternalServiceException e) {
             throw new ExternalServiceException("Error during request to Monobank api: " + e.getMessage(), e);
+        } catch (RuntimeException e) {
+            log.error("setWebhook :: Unexpected exception ", e);
+            throw e;
         }
     }
 
     @Transactional
     public void parseAndSaveTransactionWebhook(StatementItemDto statementItemDto) {
-        UUID userId = monobankAuthRepository.getUserIdByAccountId(statementItemDto.getAccount())
-                .orElseThrow(() -> new NotFoundException("User not found for monobank account id: " + statementItemDto.getAccount()));
+        MonobankAccount monobankAccount = monobankAccountRepository.findByAccountId(statementItemDto.getAccount())
+                .orElseThrow(() -> new NotFoundException("Monobank account not found for monobank account id: " + statementItemDto.getAccount()));
+        UUID userId = monobankAccount.getUserId();
         StatementItemDetailsDto transactionDetails = statementItemDto.getStatementItem();
         Transaction transaction = Transaction.builder()
                 .id(UUID.randomUUID())
                 .userId(userId)
                 .category(null)//todo  logic for category
                 .type(transactionDetails.getAmount().compareTo(BigDecimal.ZERO) > 0 ? TransactionType.INCOME : TransactionType.EXPENSE)
-                .amount(transactionDetails.getAmount().divide(BigDecimal.valueOf(100L)))
+                .amount(transactionDetails.getAmount().divide(BigDecimal.valueOf(100L)).abs())
                 .description(transactionDetails.getDescription())
-                .transactionDate(transactionDetails.getTime().toLocalDate())
+                .transactionDate(transactionDetails.getTransactionDate())
                 .build();
         transactionRepository.save(transaction);
 
     }
 
-    private void saveClientAccounts(String requestId) {
+    private void saveClientAccounts(String requestId, UUID userId) {
         try {
             String responseJson = getClientInfo(requestId);
             MonobankClientDto monobankClientDto = objectMapper.readValue(responseJson, MonobankClientDto.class);
-            List<MonobankAccount> monobankAccounts = applicationMapper.monobankClientDtoToMonobankAccountList(monobankClientDto, requestId);
-            monobankAccountRepository.saveAll(monobankAccounts);
+            List<MonobankAccount> monobankAccounts = applicationMapper.monobankClientDtoToMonobankAccountList(monobankClientDto, userId);
+            monobankAccounts.forEach(monobankAccountRepository::upsertMonobankAccount);
         } catch (IOException | ExternalServiceException e) {
             throw new ExternalServiceException("Error during request to Monobank api: " + e.getMessage(), e);
         }
@@ -164,9 +173,9 @@ public class MonobankServiceImpl implements MonobankService {
 
     private String getClientInfo(String requestId) {
         try {
-            String url = MONOBANK_AUTH_URL + REQUEST_ACCESS;
-            String xTime = String.valueOf(System.currentTimeMillis() / 1000);
-            String xSign = generateSignature(xTime, REQUEST_ACCESS, privateKeyPath);
+            String url = MONOBANK_AUTH_URL + CLIENT_INFO;
+            String xTime = String.valueOf(Instant.now().getEpochSecond());
+            String xSign = generateSignature(xTime + requestId + CLIENT_INFO, CLIENT_INFO, privateKeyPath);
 
             Request request = new Request.Builder()
                     .url(url)
@@ -186,9 +195,9 @@ public class MonobankServiceImpl implements MonobankService {
 
     private String requestAccess() {
         try {
-            String url = MONOBANK_AUTH_URL + CLIENT_INFO;
-            String xTime = String.valueOf(System.currentTimeMillis() / 1000);
-            String xSign = generateSignature(xTime, REQUEST_ACCESS, privateKeyPath);
+            String url = MONOBANK_AUTH_URL + REQUEST_ACCESS;
+            String xTime = String.valueOf(Instant.now().getEpochSecond());
+            String xSign = generateSignature(xTime + REQUEST_ACCESS, REQUEST_ACCESS, privateKeyPath);
 
             Request request = new Request.Builder()
                     .url(url)
@@ -209,27 +218,46 @@ public class MonobankServiceImpl implements MonobankService {
     private String sendRequestToMonobankApi(Request request) throws IOException {
         try (Response response = httpClient.newCall(request).execute()) {
             if (!response.isSuccessful()) {
-                throw new ExternalServiceException("Unexpected response from monobank api: " + response);
+                throw new ExternalServiceException("Not success response from monobank api: " + response + " body: " + (response.body() != null ? response.body().string() : null));
             }
             return response.body() != null ? response.body().string() : null;
         }
     }
 
-    private String generateSignature(String xTime, String resource, String privateKeyPath) {
+    public String generateSignature(String dataToSign, String resource, String privateKeyPath) {
         try {
-            String data = xTime + resource;
-            byte[] privateKeyBytes = Files.readAllBytes(Paths.get(privateKeyPath));
-            PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(privateKeyBytes);
-            PrivateKey privateKey = java.security.KeyFactory.getInstance("EC", "BC").generatePrivate(keySpec);
+            PrivateKey privateKey = loadECPrivateKey(privateKeyPath);
+            byte[] data = dataToSign.getBytes(StandardCharsets.UTF_8);
 
-            Signature signature = Signature.getInstance("SHA256withECDSA", "BC");
-            signature.initSign(privateKey);
-            signature.update(data.getBytes(StandardCharsets.UTF_8));
-
-            byte[] signedData = signature.sign();
-            return Base64.getEncoder().encodeToString(signedData);
+            Signature signer = Signature.getInstance("SHA256withECDSA", "BC");
+            signer.initSign(privateKey);
+            signer.update(data);
+            byte[] signatureBytes = signer.sign();
+            return Base64.getEncoder().encodeToString(signatureBytes);
         } catch (Exception e) {
-            throw new RuntimeException("Error generating X-Sign signature", e);
+            log.error("Error generation X-Sign for request to {}", resource, e);
+            throw new RuntimeException("Error generation X-Sign", e);
+        }
+    }
+
+    private PrivateKey loadECPrivateKey(String filename) throws Exception {
+        try (Reader reader = new FileReader(filename);
+             PEMParser pemParser = new PEMParser(reader)) {
+
+            Object object;
+            JcaPEMKeyConverter converter = new JcaPEMKeyConverter().setProvider("BC");
+            while ((object = pemParser.readObject()) != null) {
+                if (object instanceof PEMKeyPair) {
+                    PEMKeyPair pemKeyPair = (PEMKeyPair) object;
+                    KeyPair keyPair = converter.getKeyPair(pemKeyPair);
+                    return keyPair.getPrivate();
+                }
+                if (object instanceof PrivateKeyInfo) {
+                    PrivateKeyInfo privateKeyInfo = (PrivateKeyInfo) object;
+                    return converter.getPrivateKey(privateKeyInfo);
+                }
+            }
+            throw new IllegalArgumentException("No EC KeyPair found in PEM file");
         }
     }
 

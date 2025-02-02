@@ -27,8 +27,10 @@ public class MonobankIntegrationController {
     }
 
     @PostMapping("/transaction")
-    public void transactionWebhook(@RequestBody MonobankTransactionDto monobankTransactionDto) {
-        System.out.println(monobankTransactionDto);
-        monobankService.parseAndSaveTransactionWebhook(monobankTransactionDto.getData());
+    public ResponseEntity<Void> transactionWebhook(@RequestBody(required = false) MonobankTransactionDto monobankTransactionDto) {
+        if (monobankTransactionDto != null) {
+            monobankService.parseAndSaveTransactionWebhook(monobankTransactionDto.getData());
+        }
+        return ResponseEntity.ok().build();
     }
 }

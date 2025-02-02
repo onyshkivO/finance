@@ -126,10 +126,10 @@
             </and>
         </preConditions>
         <createTable tableName="monobank_auth">
-            <column name="request_id" type="VARCHAR(255)">
+            <column name="user_id" type="UUID">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="user_id" type="UUID">
+            <column name="request_id" type="VARCHAR(255)">
                 <constraints nullable="false"/>
             </column>
             <column name="accept_url" type="VARCHAR(255)">
@@ -152,9 +152,6 @@
                 referencedColumnNames="id"
                 constraintName="fk_monobank_auth_user"/>
 
-        <createIndex tableName="monobank_auth" indexName="idx_monobank_auth_user_id">
-            <column name="user_id"/>
-        </createIndex>
     </changeSet>
     <changeSet id="create-monobank_account_type-enum" author="onyshkiv" dbms="postgresql">
         <preConditions onFail="MARK_RAN">
@@ -178,7 +175,7 @@
             <column name="id" type="UUID">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="request_id" type="VARCHAR(255)">
+            <column name="user_id" type="UUID">
                 <constraints nullable="false"/>
             </column>
             <column name="client_id" type="VARCHAR(255)">
@@ -211,13 +208,17 @@
 
         <addForeignKeyConstraint
                 baseTableName="monobank_account"
-                baseColumnNames="request_id"
-                referencedTableName="monobank_auth"
-                referencedColumnNames="request_id"
-                constraintName="fk_monobank_account_monobank_auth"/>
+                baseColumnNames="user_id"
+                referencedTableName="user"
+                referencedColumnNames="id"
+                constraintName="fk_monobank_account_user"/>
 
-        <createIndex tableName="monobank_account" indexName="idx_monobank_account_request_id">
-            <column name="request_id"/>
+        <createIndex tableName="monobank_account" indexName="idx_monobank_account_user_id">
+            <column name="user_id"/>
         </createIndex>
+        <addUniqueConstraint
+                tableName="monobank_account"
+                columnNames="user_id, account_id"
+                constraintName="uk_monobank_account_user_account"/>
     </changeSet>
 </databaseChangeLog>
