@@ -48,6 +48,9 @@ public class MonobankAccount {
     @JdbcType(PostgreSQLEnumJdbcType.class)
     private MonobankAccountType type;
 
+    @Column(name = "monitor", nullable = false)
+    private Boolean monitor;
+
     @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
 

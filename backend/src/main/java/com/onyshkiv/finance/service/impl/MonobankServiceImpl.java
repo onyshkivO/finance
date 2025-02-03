@@ -7,10 +7,8 @@ import com.onyshkiv.finance.model.dto.MonobankAuthDto;
 import com.onyshkiv.finance.model.dto.monobank.MonobankClientDto;
 import com.onyshkiv.finance.model.dto.monobank.StatementItemDetailsDto;
 import com.onyshkiv.finance.model.dto.monobank.StatementItemDto;
-import com.onyshkiv.finance.model.entity.MonobankAccount;
-import com.onyshkiv.finance.model.entity.MonobankAuth;
-import com.onyshkiv.finance.model.entity.Transaction;
-import com.onyshkiv.finance.model.entity.TransactionType;
+import com.onyshkiv.finance.model.entity.*;
+import com.onyshkiv.finance.repository.CategoryMccRepository;
 import com.onyshkiv.finance.repository.MonobankAccountRepository;
 import com.onyshkiv.finance.repository.MonobankAuthRepository;
 import com.onyshkiv.finance.repository.TransactionRepository;
@@ -32,6 +30,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.security.PrivateKey;
@@ -65,6 +64,7 @@ public class MonobankServiceImpl implements MonobankService {
     private final SecurityContextHelper securityContextHelper;
     private final ApplicationMapper applicationMapper;
     private final TransactionRepository transactionRepository;
+    private final CategoryMccRepository categoryMccRepository;
 
 
     @Autowired
@@ -74,7 +74,7 @@ public class MonobankServiceImpl implements MonobankService {
                                MonobankAccountRepository monobankAccountRepository,
                                SecurityContextHelper securityContextHelper,
                                ApplicationMapper applicationMapper,
-                               TransactionRepository transactionRepository) {
+                               TransactionRepository transactionRepository, CategoryMccRepository categoryMccRepository) {
         this.objectMapper = objectMapper;
         this.monobankAuthRepository = monobankAuthRepository;
         this.httpClient = httpClient;
@@ -82,6 +82,7 @@ public class MonobankServiceImpl implements MonobankService {
         this.securityContextHelper = securityContextHelper;
         this.applicationMapper = applicationMapper;
         this.transactionRepository = transactionRepository;
+        this.categoryMccRepository = categoryMccRepository;
     }
 
     @Transactional
@@ -147,12 +148,17 @@ public class MonobankServiceImpl implements MonobankService {
                 .orElseThrow(() -> new NotFoundException("Monobank account not found for monobank account id: " + statementItemDto.getAccount()));
         UUID userId = monobankAccount.getUserId();
         StatementItemDetailsDto transactionDetails = statementItemDto.getStatementItem();
+
+        TransactionType type = transactionDetails.getAmount().compareTo(BigInteger.ZERO) > 0 ? TransactionType.INCOME : TransactionType.EXPENSE;
+        BigDecimal amount = new BigDecimal(transactionDetails.getAmount()).divide(BigDecimal.valueOf(100)).abs();
+        UUID categoryId = categoryMccRepository.getCategoryIdByMccAndUserIdAndType(transactionDetails.getMcc(), userId, type);
+
         Transaction transaction = Transaction.builder()
                 .id(UUID.randomUUID())
                 .userId(userId)
-                .category(null)//todo  logic for category
-                .type(transactionDetails.getAmount().compareTo(BigDecimal.ZERO) > 0 ? TransactionType.INCOME : TransactionType.EXPENSE)
-                .amount(transactionDetails.getAmount().divide(BigDecimal.valueOf(100L)).abs())
+                .category(new Category(categoryId))
+                .type(type)
+                .amount(amount)
                 .description(transactionDetails.getDescription())
                 .transactionDate(transactionDetails.getTransactionDate())
                 .build();

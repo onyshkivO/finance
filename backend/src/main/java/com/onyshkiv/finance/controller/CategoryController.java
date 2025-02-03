@@ -1,10 +1,9 @@
 package com.onyshkiv.finance.controller;
 
 import com.onyshkiv.finance.model.dto.CategoryDto;
-import com.onyshkiv.finance.model.dto.request.NameDto;
+import com.onyshkiv.finance.model.dto.request.UpdateCategoryRequest;
 import com.onyshkiv.finance.model.entity.TransactionType;
 import com.onyshkiv.finance.service.CategoryService;
-import com.onyshkiv.finance.util.ValidEnum;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -31,8 +30,8 @@ public class CategoryController {
 
     @PutMapping("rename/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public CategoryDto renameCategory(@PathVariable("id") UUID id, @RequestBody @Valid NameDto name) {
-        return categoryService.renameCategory(id, name.getName());
+    public CategoryDto renameCategory(@PathVariable("id") UUID id, @RequestBody @Valid UpdateCategoryRequest updateCategoryRequest) {
+        return categoryService.updateCategory(id, updateCategoryRequest);
     }
 
     @DeleteMapping("/{id}")

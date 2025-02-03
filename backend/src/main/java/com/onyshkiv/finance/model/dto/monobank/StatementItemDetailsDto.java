@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -21,8 +22,8 @@ public class StatementItemDetailsDto {
     private String description;
     private Integer mcc;
     private Integer originalMcc;
-    private BigDecimal amount;
-    private BigDecimal operationAmount;
+    private BigInteger amount;
+    private BigInteger operationAmount;
     private Integer currencyCode;
     private BigDecimal commissionRate;
     private BigDecimal cashbackAmount;

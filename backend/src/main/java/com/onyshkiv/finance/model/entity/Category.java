@@ -9,6 +9,7 @@ import org.hibernate.annotations.JdbcType;
 import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 
 import java.time.OffsetDateTime;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -34,6 +35,9 @@ public class Category {
     @JdbcType(PostgreSQLEnumJdbcType.class)
     private TransactionType type;
 
+    @OneToMany(mappedBy = "categoryId", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<CategoryMcc> categoryMccs;
+
     @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
 
@@ -53,4 +57,10 @@ public class Category {
     protected void onUpdate() {
         this.updatedAt = OffsetDateTime.now();
     }
+
+    public void updateMccSet(Set<CategoryMcc> categoryMccs){
+        this.categoryMccs.retainAll(categoryMccs);
+        this.categoryMccs.addAll(categoryMccs);
+    }
+
 }
