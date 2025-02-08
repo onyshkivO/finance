@@ -38,7 +38,7 @@
         <preConditions onFail="MARK_RAN">
             <not>
                 <sqlCheck expectedResult="1">
-                    SELECT 1 FROM pg_type WHERE typname = 'type_enum';
+                    SELECT COUNT(*) FROM pg_type WHERE typname = 'type_enum';
                 </sqlCheck>
             </not>
         </preConditions>
