@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="INFO">
     <Appenders>
-        <CloudWatch name="CloudWatch" logGroup="MyAppLogs" logStream="MyAppStream">
+        <CloudWatchAppender name="CloudWatch"
+                            logGroup="MyAppLogs"
+                            logStream="FinanceAppLogs">
             <AWSRegion>eu-north-1</AWSRegion>
             <RetentionPeriod>14</RetentionPeriod>
-        </CloudWatch>
-
+        </CloudWatchAppender>
         <Console name="Console" target="SYSTEM_OUT">
             <PatternLayout pattern="%d [%t] %-5level %logger{36} - %msg%n"/>
         </Console>
