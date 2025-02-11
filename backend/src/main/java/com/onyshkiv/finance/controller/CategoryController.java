@@ -28,7 +28,7 @@ public class CategoryController {
         return categoryService.save(category);
     }
 
-    @PutMapping("rename/{id}")
+    @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     public CategoryDto renameCategory(@PathVariable("id") UUID id, @RequestBody @Valid UpdateCategoryRequest updateCategoryRequest) {
         return categoryService.updateCategory(id, updateCategoryRequest);

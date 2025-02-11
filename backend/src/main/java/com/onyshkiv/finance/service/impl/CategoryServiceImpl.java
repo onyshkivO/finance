@@ -46,6 +46,7 @@ public class CategoryServiceImpl implements CategoryService {
         UUID userId = securityContextHelper.getLoggedInUser().getId();
         Category category = applicationMapper.categoryDtoToCategory(categoryDto);
         category.setId(UUID.randomUUID());
+        category.setUserId(userId);
         category.setCreatedAt(OffsetDateTime.now());
         Set<CategoryMcc> categoryMccs = getCategoryMccs(categoryDto.getMccCodes(), category, userId);
         category.setCategoryMccs(categoryMccs);

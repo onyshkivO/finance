@@ -9,6 +9,7 @@ import org.mapstruct.Mapper;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring")
 public abstract class ApplicationMapper {
@@ -16,7 +17,13 @@ public abstract class ApplicationMapper {
 
     public abstract Category categoryDtoToCategory(CategoryDto categoryDto);
 
-    public abstract CategoryDto categoryToCategoryDto(Category category);
+    public CategoryDto categoryToCategoryDto(Category category) {
+        return CategoryDto.builder()
+                .id(category.getId())
+                .name(category.getName())
+                .mccCodes(category.getCategoryMccs().stream().map(CategoryMcc::getMccCode).collect(Collectors.toSet()))
+                .build();
+    }
 
     public abstract Transaction transactionDtoToTransaction(TransactionDto transactionDto);
 
