@@ -1,6 +1,7 @@
 package com.onyshkiv.finance.service;
 
 import com.onyshkiv.finance.model.dto.CategoryDto;
+import com.onyshkiv.finance.model.dto.request.UpdateCategoryRequest;
 import com.onyshkiv.finance.model.entity.Category;
 import com.onyshkiv.finance.model.entity.TransactionType;
 
@@ -11,7 +12,7 @@ public interface CategoryService {
 
     CategoryDto save(CategoryDto categoryDto);
 
-    CategoryDto renameCategory(UUID id, String name);
+    CategoryDto updateCategory(UUID id, UpdateCategoryRequest updateCategoryRequest);
 
     void deleteCategory(UUID id);
 

@@ -75,7 +75,44 @@
                              tableName="category"
                              validate="false"/>
     </changeSet>
+    <changeSet id="create-category_mcc-table" author="onyshkiv">
+        <createTable tableName="category_mcc">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="category_id" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="type" type="type_enum">
+                <constraints nullable="false"/>
+            </column>
+            <column name="mcc_code" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP"/>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="category_mcc"
+                                 baseColumnNames="user_id"
+                                 referencedTableName="user"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_category_mcc_user"/>
+        <addForeignKeyConstraint baseTableName="category_mcc"
+                                 baseColumnNames="category_id"
+                                 referencedTableName="category"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_category_mcc_category"/>
 
+        <addUniqueConstraint columnNames="mcc_code, user_id, type"
+                             constraintName="unique_mcc_per_user_category_type"
+                             tableName="category_mcc"
+                             validate="false"/>
+    </changeSet>
     <changeSet id="create-transaction-table" author="onyshkiv" dbms="postgresql">
         <preConditions onFail="MARK_RAN">
             <and>
@@ -92,7 +129,7 @@
                 <constraints nullable="false"/>
             </column>
             <column name="category_id" type="UUID">
-                <constraints nullable="false"/>
+                <constraints nullable="true"/>
             </column>
             <column name="type" type="type_enum">
                 <constraints nullable="false"/>
@@ -109,36 +146,41 @@
             </column>
             <column name="updated_at" type="TIMESTAMP"/>
         </createTable>
-        <addForeignKeyConstraint  baseColumnNames="category_id"
-                                  baseTableName="transaction"
-                                  constraintName="fk_transaction_category"
-                                  onDelete="CASCADE"
-                                  onUpdate="CASCADE"
-                                  referencedColumnNames="id"
-                                  referencedTableName="category"
-                                  validate="false"/>
+        <addForeignKeyConstraint baseColumnNames="category_id"
+                                 baseTableName="transaction"
+                                 constraintName="fk_transaction_category"
+                                 onDelete="CASCADE"
+                                 onUpdate="CASCADE"
+                                 referencedColumnNames="id"
+                                 referencedTableName="category"
+                                 validate="false"/>
     </changeSet>
-    <changeSet id="create-monobank-auth-table" author="щтнірлшм">
+    <changeSet id="create-monobank_auth-table" author="onyshkiv" dbms="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <not>
+                    <tableExists tableName="monobank_auth"/>
+                </not>
+            </and>
+        </preConditions>
         <createTable tableName="monobank_auth">
-            <column name="id" type="UUID">
+            <column name="user_id" type="UUID">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="user_id" type="UUID">
-                <constraints nullable="false"/>
-            </column>
-            <column name="token_request_id" type="VARCHAR(255)">
+            <column name="request_id" type="VARCHAR(255)">
                 <constraints nullable="false"/>
             </column>
             <column name="accept_url" type="VARCHAR(255)">
                 <constraints nullable="false"/>
             </column>
-            <column name="is_activated" type="BOOLEAN" defaultValue="false">
+            <column name="activated" type="BOOLEAN" defaultValue="false">
                 <constraints nullable="false"/>
             </column>
             <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
                 <constraints nullable="false"/>
             </column>
-            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP">
+            <column name="updated_at" type="TIMESTAMP"
+                    defaultValueComputed="CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP">
             </column>
         </createTable>
 
@@ -149,10 +191,77 @@
                 referencedColumnNames="id"
                 constraintName="fk_monobank_auth_user"/>
 
-        <createIndex tableName="monobank_auth" indexName="idx_monobank_auth_user_id">
+    </changeSet>
+    <changeSet id="create-monobank_account_type-enum" author="onyshkiv" dbms="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sqlCheck expectedResult="1">
+                    SELECT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'monobank_account_type_enum');
+                </sqlCheck>
+            </not>
+        </preConditions>
+        <sql>CREATE TYPE monobank_account_type_enum AS ENUM ('BLACK', 'WHITE', 'PLATINUM', 'IRON', 'FOP', 'YELLOW', 'EAID')</sql>
+    </changeSet>
+    <changeSet id="create-monobank_account-table" author="onyshkiv" dbms="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <not>
+                    <tableExists tableName="monobank_account"/>
+                </not>
+            </and>
+        </preConditions>
+        <createTable tableName="monobank_account">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="client_id" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="account_id" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="send_id" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="iban" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="currency_code" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="type" type="monobank_account_type_enum">
+                <constraints nullable="false"/>
+            </column>
+            <column name="monitor" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP"
+                    defaultValueComputed="CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP">
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="monobank_account"
+                baseColumnNames="user_id"
+                referencedTableName="user"
+                referencedColumnNames="id"
+                constraintName="fk_monobank_account_user"/>
+
+        <createIndex tableName="monobank_account" indexName="idx_monobank_account_user_id">
             <column name="user_id"/>
         </createIndex>
+        <addUniqueConstraint
+                tableName="monobank_account"
+                columnNames="user_id, account_id"
+                constraintName="uk_monobank_account_user_account"/>
     </changeSet>
-
-
 </databaseChangeLog>
