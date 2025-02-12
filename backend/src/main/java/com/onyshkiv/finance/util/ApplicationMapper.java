@@ -2,6 +2,7 @@ package com.onyshkiv.finance.util;
 
 import com.onyshkiv.finance.model.dto.CategoryDto;
 import com.onyshkiv.finance.model.dto.TransactionDto;
+import com.onyshkiv.finance.model.dto.monobank.MonobankAccountDto;
 import com.onyshkiv.finance.model.dto.monobank.MonobankClientDto;
 import com.onyshkiv.finance.model.dto.request.SignUpRequest;
 import com.onyshkiv.finance.model.entity.*;
@@ -42,5 +43,15 @@ public abstract class ApplicationMapper {
                 .currencyCode(account.getCurrencyCode())
                 .type(MonobankAccountType.fromString(account.getType()))
                 .build()).toList();
+    }
+
+    public MonobankAccountDto monobankAccountToMonobankAccountDto(MonobankAccount monobankAccount) {
+        return MonobankAccountDto.builder()
+                .id(monobankAccount.getAccountId())
+                .sendId(monobankAccount.getSendId())
+                .type(monobankAccount.getType().name())
+                .currencyCode(monobankAccount.getCurrencyCode())
+                .iban(monobankAccount.getIban())
+                .build();
     }
 }

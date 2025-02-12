@@ -1,10 +1,13 @@
 package com.onyshkiv.finance.controller;
 
 import com.onyshkiv.finance.model.dto.MonobankAuthDto;
+import com.onyshkiv.finance.model.dto.monobank.MonobankAccountDto;
 import com.onyshkiv.finance.model.dto.monobank.MonobankTransactionDto;
 import com.onyshkiv.finance.service.MonobankService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/mono")
@@ -32,5 +35,23 @@ public class MonobankIntegrationController {
             monobankService.parseAndSaveTransactionWebhook(monobankTransactionDto.getData());
         }
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/account")
+    public ResponseEntity<List<MonobankAccountDto>> getUserMonobankAccounts() {
+        List<MonobankAccountDto> userMonobankAccounts =  monobankService.getUserMonobankAccounts();
+        return ResponseEntity.ok(userMonobankAccounts);
+    }
+
+    @PutMapping("/account/monitor/{accountId}")
+    public ResponseEntity<Void> monitorMonobankAccount(@PathVariable("accountId") String accountId) {
+        monobankService.monitorAccount(accountId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/account/unmonitor/{accountId}")
+    public ResponseEntity<Void> unmonitorMonobankAccount(@PathVariable("accountId") String accountId) {
+        monobankService.unmonitorAccount(accountId);
+        return ResponseEntity.noContent().build();
     }
 }

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.onyshkiv.finance.exception.ExternalServiceException;
 import com.onyshkiv.finance.exception.NotFoundException;
 import com.onyshkiv.finance.model.dto.MonobankAuthDto;
+import com.onyshkiv.finance.model.dto.monobank.MonobankAccountDto;
 import com.onyshkiv.finance.model.dto.monobank.MonobankClientDto;
 import com.onyshkiv.finance.model.dto.monobank.StatementItemDetailsDto;
 import com.onyshkiv.finance.model.dto.monobank.StatementItemDto;
@@ -38,6 +39,7 @@ import java.security.Signature;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -146,17 +148,21 @@ public class MonobankServiceImpl implements MonobankService {
     public void parseAndSaveTransactionWebhook(StatementItemDto statementItemDto) {
         MonobankAccount monobankAccount = monobankAccountRepository.findByAccountId(statementItemDto.getAccount())
                 .orElseThrow(() -> new NotFoundException("Monobank account not found for monobank account id: " + statementItemDto.getAccount()));
+        if (!monobankAccount.getMonitor()) {
+            log.info("user do not monitor account with id {}, skipping transaction", statementItemDto.getAccount());
+            return;
+        }
         UUID userId = monobankAccount.getUserId();
         StatementItemDetailsDto transactionDetails = statementItemDto.getStatementItem();
 
         TransactionType type = transactionDetails.getAmount().compareTo(BigInteger.ZERO) > 0 ? TransactionType.INCOME : TransactionType.EXPENSE;
         BigDecimal amount = new BigDecimal(transactionDetails.getAmount()).divide(BigDecimal.valueOf(100)).abs();
-        UUID categoryId = categoryMccRepository.getCategoryIdByMccAndUserIdAndType(transactionDetails.getMcc(), userId, type);
+        Optional<UUID> categoryIdOptional = categoryMccRepository.getCategoryIdByMccAndUserIdAndType(transactionDetails.getMcc(), userId, type);
 
         Transaction transaction = Transaction.builder()
                 .id(UUID.randomUUID())
                 .userId(userId)
-                .category(new Category(categoryId))
+                .category(categoryIdOptional.map(Category::new).orElse(null))
                 .type(type)
                 .amount(amount)
                 .description(transactionDetails.getDescription())
@@ -164,6 +170,31 @@ public class MonobankServiceImpl implements MonobankService {
                 .build();
         transactionRepository.save(transaction);
 
+    }
+
+    @Override
+    @Transactional
+    public void monitorAccount(String accountId) {
+        MonobankAccount monobankAccount = monobankAccountRepository.findByAccountId(accountId)
+                .orElseThrow(() -> new NotFoundException("Monobank account not found for monobank account id: " + accountId));
+        monobankAccount.setMonitor(true);
+    }
+
+    @Override
+    @Transactional
+    public void unmonitorAccount(String accountId) {
+        MonobankAccount monobankAccount = monobankAccountRepository.findByAccountId(accountId)
+                .orElseThrow(() -> new NotFoundException("Monobank account not found for monobank account id: " + accountId));
+        monobankAccount.setMonitor(false);
+    }
+
+    @Override
+    public List<MonobankAccountDto> getUserMonobankAccounts() {
+        UUID userId = securityContextHelper.getLoggedInUser().getId();
+        List<MonobankAccount> userMonobankAccounts = monobankAccountRepository.findAllByUserId(userId);
+        return userMonobankAccounts.stream()
+                .map(applicationMapper::monobankAccountToMonobankAccountDto)
+                .toList();
     }
 
     private void saveClientAccounts(String requestId, UUID userId) {
