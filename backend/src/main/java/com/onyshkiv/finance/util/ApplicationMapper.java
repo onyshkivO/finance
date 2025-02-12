@@ -20,6 +20,7 @@ public abstract class ApplicationMapper {
     public CategoryDto categoryToCategoryDto(Category category) {
         return CategoryDto.builder()
                 .id(category.getId())
+                .type(category.getType().name())
                 .name(category.getName())
                 .mccCodes(category.getCategoryMccs().stream().map(CategoryMcc::getMccCode).collect(Collectors.toSet()))
                 .build();
