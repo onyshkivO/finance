@@ -15,8 +15,6 @@ import java.util.UUID;
 public interface CategoryRepository extends JpaRepository<Category, UUID> {
     List<Category> findAllByUserIdAndType(UUID userId, TransactionType transactionType);
 
-    int deleteByIdAndUserId(UUID id, UUID userId);
-
     @Modifying
     @Query(value = "UPDATE transaction " +
             "SET category_id = CASE WHEN :categoryIdTo IS NOT NULL THEN :categoryIdTo ELSE NULL END " +

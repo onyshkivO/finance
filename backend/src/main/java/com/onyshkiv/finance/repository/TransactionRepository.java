@@ -15,8 +15,6 @@ import java.util.UUID;
 public interface TransactionRepository extends JpaRepository<Transaction, UUID> {
     List<Transaction> findAllByUserIdAndType(UUID userId, TransactionType transactionType);
 
-    int deleteByIdAndUserId(UUID id, UUID userId);
-
     @Modifying
     @Query("UPDATE Transaction t SET t.category.id = :targetCategoryId WHERE t.category.id = :sourceCategoryId")
     void moveTransactionsToAnotherCategory(@Param("sourceCategoryId") UUID sourceCategoryId, @Param("targetCategoryId") UUID targetCategoryId);

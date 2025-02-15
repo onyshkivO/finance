@@ -102,7 +102,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public void deleteCategory(UUID id) {
         securityContextHelper.validateLoggedInUser();
-        categoryRepository.deleteByIdAndUserId(id, securityContextHelper.getLoggedInUser().getId());
+        categoryRepository.deleteById(id);
         log.info("CategoryService deleteCategory : Category successfully deleted with id : {}", id);
     }
 
