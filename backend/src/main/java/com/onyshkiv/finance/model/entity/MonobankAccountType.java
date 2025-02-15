@@ -2,6 +2,7 @@ package com.onyshkiv.finance.model.entity;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
+import com.onyshkiv.finance.exception.UnsupportedException;
 
 public enum MonobankAccountType {
     BLACK("black"),
@@ -23,7 +24,7 @@ public enum MonobankAccountType {
         try {
             return key != null ? MonobankAccountType.valueOf(key.toUpperCase()) : null;
         } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Invalid monobank account type type: " + key);
+            throw new UnsupportedException("Invalid monobank account type type: " + key);
         }
     }
 

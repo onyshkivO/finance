@@ -294,7 +294,7 @@ public class MonobankServiceImpl implements MonobankService {
                     return converter.getPrivateKey(privateKeyInfo);
                 }
             }
-            throw new IllegalArgumentException("No EC KeyPair found in PEM file");
+            throw new ExternalServiceException("No EC KeyPair found in PEM file");
         }
     }
 

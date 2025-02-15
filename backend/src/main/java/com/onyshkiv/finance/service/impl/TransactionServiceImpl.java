@@ -1,6 +1,7 @@
 package com.onyshkiv.finance.service.impl;
 
 import com.onyshkiv.finance.exception.NotFoundException;
+import com.onyshkiv.finance.exception.UnsupportedException;
 import com.onyshkiv.finance.model.dto.TransactionDto;
 import com.onyshkiv.finance.model.entity.Category;
 import com.onyshkiv.finance.model.entity.Transaction;
@@ -43,7 +44,7 @@ public class TransactionServiceImpl implements TransactionService {
         securityContextHelper.validateLoggedInUser();
         Transaction transaction = applicationMapper.transactionDtoToTransaction(transactionDto);
         if (!categoryService.validateCategoryType(transactionDto.getCategory().getId(), transaction.getType())) {
-            throw new IllegalStateException(String.format("category type differ with type %s",//todo change exception
+            throw new UnsupportedException(String.format("category type differ with type %s",
                     transaction.getType()));
         }
         transaction.setId(UUID.randomUUID());
@@ -61,7 +62,7 @@ public class TransactionServiceImpl implements TransactionService {
         securityContextHelper.validateLoggedInUser();
         Transaction transaction = getTransaction(id);
         if (!categoryService.validateCategoryType(transactionDto.getCategory().getId(), transaction.getType())) {
-            throw new IllegalStateException(String.format("category type differ with type %s",//todo change exception
+            throw new UnsupportedException(String.format("category type differ with type %s",
                     transaction.getType()));
         }
 

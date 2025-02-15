@@ -2,6 +2,8 @@ package com.onyshkiv.finance.model.entity;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
+import com.onyshkiv.finance.exception.UnsupportedException;
+import com.onyshkiv.finance.exception.ValidationErrorResponse;
 
 public enum TransactionType {
     INCOME,
@@ -12,7 +14,7 @@ public enum TransactionType {
         try {
             return key != null ? TransactionType.valueOf(key.toUpperCase()) : null;
         } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Invalid transaction type: " + key);
+            throw new UnsupportedException("Invalid transaction type: " + key);
         }
     }
     @JsonValue
