@@ -15,7 +15,6 @@ import com.onyshkiv.finance.service.CategoryService;
 import com.onyshkiv.finance.util.ApplicationMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,22 +44,32 @@ public class CategoryServiceImpl implements CategoryService {
     public CategoryDto save(CategoryDto categoryDto) {
         securityContextHelper.validateLoggedInUser();
         UUID userId = securityContextHelper.getLoggedInUser().getId();
+
+        checkExistingCategoriesOnDuplication(userId, categoryDto.getName(), TransactionType.valueOf(categoryDto.getType()));
+
         Category category = applicationMapper.categoryDtoToCategory(categoryDto);
         category.setId(UUID.randomUUID());
         category.setUserId(userId);
         category.setCreatedAt(OffsetDateTime.now());
-        Set<CategoryMcc> categoryMccs = getCategoryMccs(categoryDto.getMccCodes(), category, userId);
-        category.setCategoryMccs(categoryMccs);
-        try {
-            Category savedCategory = categoryRepository.save(category);
-            log.info("CategoryService save : category successfully saved : {}", savedCategory);
-            return applicationMapper.categoryToCategoryDto(savedCategory);
-        } catch (DataIntegrityViolationException e) {
-            log.error("CategoryService save : Unique constraint violation for user_id: {}, name: {}, type: {}",
-                    category.getUserId(), category.getName(), category.getType(), e);
-            throw new DuplicationException("Category with the same name and type already exists for user.");
+
+        Set<Integer> newMccCodes = categoryDto.getMccCodes();
+
+        List<Integer> existingDuplicateMccCodes = categoryMccRepository.findDuplicateMccCodes(userId, category.getType(), newMccCodes);
+        if (!existingDuplicateMccCodes.isEmpty()) {
+            log.error("CategoryService save : Duplicate MCC codes found for user_id: {}, type: {}, mcc_codes: {}",
+                    userId, category.getType(), existingDuplicateMccCodes);
+            throw new DuplicationException("Some of the following MCC codes are already assigned to another category: " + existingDuplicateMccCodes);
         }
+
+        Set<CategoryMcc> categoryMccs = getCategoryMccs(newMccCodes, category, userId);
+        category.setCategoryMccs(categoryMccs);
+
+        Category savedCategory = categoryRepository.save(category);
+        log.info("CategoryService save : category successfully saved : {}", savedCategory);
+
+        return applicationMapper.categoryToCategoryDto(savedCategory);
     }
+
 
     private Set<CategoryMcc> getCategoryMccs(Set<Integer> mccCodes, Category category, UUID userId) {
         mccCodes = mccCodes != null ? mccCodes : Collections.emptySet();
@@ -82,20 +91,26 @@ public class CategoryServiceImpl implements CategoryService {
         securityContextHelper.validateLoggedInUser();
         UUID userId = securityContextHelper.getLoggedInUser().getId();
         Category category = getCategory(id);
-        category.setName(updateCategoryRequest.getName());
-        Set<CategoryMcc> categoryMccs = getCategoryMccs(updateCategoryRequest.getMccCodes(), category, userId);
 
+        checkExistingCategoriesOnDuplication(id, updateCategoryRequest.getName(), userId, category.getType());
+
+        Set<Integer> newMccCodes = updateCategoryRequest.getMccCodes();
+
+        List<Integer> duplicateMccCodes = categoryMccRepository.findDuplicateMccCodes(userId, category.getType(), newMccCodes, id);
+        if (!duplicateMccCodes.isEmpty()) {
+            log.error("CategoryService save : Duplicate MCC codes found for user_id: {}, type: {}, mcc_codes: {}",
+                    userId, category.getType(), duplicateMccCodes);
+            throw new DuplicationException("The following MCC codes are already assigned to another category: " + duplicateMccCodes);
+        }
+
+        category.setName(updateCategoryRequest.getName());
+        Set<CategoryMcc> categoryMccs = getCategoryMccs(newMccCodes, category, userId);
         category.updateMccSet(categoryMccs);
 
-        try {
-            Category updatedCategory = categoryRepository.save(category);
-            log.info("CategoryService renameCategory : category successfully updated : {}", updatedCategory);
-            return applicationMapper.categoryToCategoryDto(updatedCategory);
-        } catch (DataIntegrityViolationException e) {
-            log.error("CategoryService renameCategory : Unique constraint violation while updating category ID: {}, " +
-                    "new name: {}, user_id: {}, type: {}", id, updateCategoryRequest.getName(), category.getUserId(), category.getType(), e);
-            throw new DuplicationException("Category with the same name and type already exists for user.");
-        }
+        Category updatedCategory = categoryRepository.save(category);
+        log.info("CategoryService updateCategory: category successfully updated: {}", updatedCategory);
+
+        return applicationMapper.categoryToCategoryDto(updatedCategory);
     }
 
     @Transactional
@@ -159,5 +174,23 @@ public class CategoryServiceImpl implements CategoryService {
             throw new UnsupportedException("Impossible to transfer to different category type");
         }
         categoryRepository.transferCategoryTransactions(categoryIdFrom, categoryIdTo, transactionType.name());
+    }
+
+    private void checkExistingCategoriesOnDuplication(UUID userId, String name, TransactionType transactionType) {
+        Optional<Category> existingCategory = categoryRepository.getByUserIdAndNameAndType(userId, name, transactionType);
+        if (existingCategory.isPresent()) {
+            log.error("CategoryService save : Unique constraint violation for user_id: {}, name: {}, type: {}",
+                    userId, name, transactionType);
+            throw new DuplicationException("Category with the same name and type already exists for user.");
+        }
+    }
+
+    private void checkExistingCategoriesOnDuplication(UUID categoryId, String name, UUID userId, TransactionType transactionType) {
+        Optional<Category> existingCategory = categoryRepository.getByUserIdAndNameAndType(userId, name, transactionType);
+        if (existingCategory.isPresent() && !existingCategory.get().getId().equals(categoryId)) {
+            log.error("CategoryService update : Unique constraint violation for user_id: {}, name: {}, type: {}",
+                    userId, name, transactionType);
+            throw new DuplicationException("Category with the same name and type already exists for user.");
+        }
     }
 }

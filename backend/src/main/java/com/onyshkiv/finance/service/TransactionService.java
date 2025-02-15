@@ -21,6 +21,4 @@ public interface TransactionService {
     List<TransactionDto> getTransactions();
 
     List<TransactionDto> getUserTransactions(TransactionType transactionType);
-
-    void moveTransactionsToAnotherCategory(UUID sourceCategoryId, UUID targetCategoryId);
 }

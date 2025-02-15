@@ -76,6 +76,13 @@
                              validate="false"/>
     </changeSet>
     <changeSet id="create-category_mcc-table" author="onyshkiv">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <not>
+                    <tableExists tableName="category_mcc"/>
+                </not>
+            </and>
+        </preConditions>
         <createTable tableName="category_mcc">
             <column name="id" type="UUID">
                 <constraints primaryKey="true" nullable="false"/>

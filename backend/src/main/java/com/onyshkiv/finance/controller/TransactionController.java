@@ -48,13 +48,5 @@ public class TransactionController {
         return transactionService.getUserTransactions(TransactionType.valueOf(transactionType));
     }
 
-    @PutMapping("/move-category")
-    @ResponseStatus(HttpStatus.OK)
-    public void moveTransactionsToAnotherCategory(
-            @RequestParam("sourceCategoryId") UUID sourceCategoryId,
-            @RequestParam("targetCategoryId") UUID targetCategoryId) {
-        transactionService.moveTransactionsToAnotherCategory(sourceCategoryId, targetCategoryId);
-    }
-
 
 }
