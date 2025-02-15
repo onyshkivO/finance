@@ -19,7 +19,7 @@ public abstract class ApplicationMapper {
     public abstract Category categoryDtoToCategory(CategoryDto categoryDto);
 
     public CategoryDto categoryToCategoryDto(Category category) {
-        return CategoryDto.builder()
+        return category == null ? null : CategoryDto.builder()
                 .id(category.getId())
                 .type(category.getType().name())
                 .name(category.getName())

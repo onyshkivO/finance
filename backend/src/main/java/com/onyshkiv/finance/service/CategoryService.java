@@ -25,4 +25,6 @@ public interface CategoryService {
     List<CategoryDto> getUserCategories(TransactionType transactionType);
 
     boolean validateCategoryType(UUID categoryId, TransactionType type);
+
+    void transferCategoryTransactions(UUID categoryIdFrom, UUID categoryIdTo, TransactionType transactionType);
 }

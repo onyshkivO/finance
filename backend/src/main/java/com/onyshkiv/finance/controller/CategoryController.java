@@ -1,6 +1,7 @@
 package com.onyshkiv.finance.controller;
 
 import com.onyshkiv.finance.model.dto.CategoryDto;
+import com.onyshkiv.finance.model.dto.request.TransferCategoryTransactionRequest;
 import com.onyshkiv.finance.model.dto.request.UpdateCategoryRequest;
 import com.onyshkiv.finance.model.entity.TransactionType;
 import com.onyshkiv.finance.service.CategoryService;
@@ -50,6 +51,15 @@ public class CategoryController {
     @ResponseStatus(HttpStatus.OK)
     public List<CategoryDto> getUserCategories(@PathVariable TransactionType transactionType) {
         return categoryService.getUserCategories(transactionType);
+    }
+
+    @PutMapping("/transfer")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void transferCategoryTransactions(@RequestBody TransferCategoryTransactionRequest transferCategoryTransactionRequest) {
+        categoryService.transferCategoryTransactions(
+                transferCategoryTransactionRequest.getCategoryIdFrom(),
+                transferCategoryTransactionRequest.getCategoryIdTo(),
+                transferCategoryTransactionRequest.getType());
     }
 
 }

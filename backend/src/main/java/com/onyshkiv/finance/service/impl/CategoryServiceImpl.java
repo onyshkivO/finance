@@ -2,6 +2,7 @@ package com.onyshkiv.finance.service.impl;
 
 import com.onyshkiv.finance.exception.DuplicationException;
 import com.onyshkiv.finance.exception.NotFoundException;
+import com.onyshkiv.finance.exception.UnsupportedException;
 import com.onyshkiv.finance.model.dto.CategoryDto;
 import com.onyshkiv.finance.model.dto.request.UpdateCategoryRequest;
 import com.onyshkiv.finance.model.entity.Category;
@@ -148,5 +149,15 @@ public class CategoryServiceImpl implements CategoryService {
             return false;
         }
         return true;
+    }
+
+    @Override
+    @Transactional
+    public void transferCategoryTransactions(UUID categoryIdFrom, UUID categoryIdTo, TransactionType transactionType) {
+        if ((categoryIdFrom != null && !getCategory(categoryIdFrom).getType().equals(transactionType))
+                || (categoryIdTo != null && !getCategory(categoryIdTo).getType().equals(transactionType))) {
+            throw new UnsupportedException("Impossible to transfer to different category type");
+        }
+        categoryRepository.transferCategoryTransactions(categoryIdFrom, categoryIdTo, transactionType.name());
     }
 }

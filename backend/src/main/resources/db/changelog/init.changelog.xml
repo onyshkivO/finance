@@ -149,7 +149,7 @@
         <addForeignKeyConstraint baseColumnNames="category_id"
                                  baseTableName="transaction"
                                  constraintName="fk_transaction_category"
-                                 onDelete="CASCADE"
+                                 onDelete="SET NULL"
                                  onUpdate="CASCADE"
                                  referencedColumnNames="id"
                                  referencedTableName="category"
@@ -196,7 +196,7 @@
         <preConditions onFail="MARK_RAN">
             <not>
                 <sqlCheck expectedResult="1">
-                    SELECT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'monobank_account_type_enum');
+                    SELECT COUNT(*) FROM pg_type WHERE typname = 'monobank_account_type_enum';
                 </sqlCheck>
             </not>
         </preConditions>
