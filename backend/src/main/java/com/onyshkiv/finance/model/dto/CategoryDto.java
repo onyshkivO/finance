@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Set;
 import java.util.UUID;
 
 @AllArgsConstructor
@@ -22,4 +23,6 @@ public class CategoryDto {
 
     @ValidEnum(enumClass = TransactionType.class, message = "Invalid transaction type")
     private String type;
+
+    Set<Integer> mccCodes;
 }

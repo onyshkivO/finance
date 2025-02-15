@@ -6,11 +6,15 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Set;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
 @Builder
-public class NameDto {
+public class UpdateCategoryRequest {
     @NotBlank(message = "invalid category name")
     private String name;
+
+    private Set<Integer> mccCodes;
 }

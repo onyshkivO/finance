@@ -44,8 +44,8 @@ public class TransactionController {
 
     @GetMapping("/type/{transactionType}")
     @ResponseStatus(HttpStatus.OK)
-    public List<TransactionDto> getUserTransactions(@PathVariable @ValidEnum(enumClass = TransactionType.class) TransactionType transactionType) {
-        return transactionService.getUserTransactions(transactionType);
+    public List<TransactionDto> getUserTransactions(@PathVariable @ValidEnum(enumClass = TransactionType.class) String transactionType) {
+        return transactionService.getUserTransactions(TransactionType.valueOf(transactionType));
     }
 
     @PutMapping("/move-category")
