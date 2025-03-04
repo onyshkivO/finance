@@ -1,5 +1,6 @@
 package com.onyshkiv.finance.security;
 
+import com.onyshkiv.finance.model.entity.Currency;
 import com.onyshkiv.finance.model.entity.User;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
@@ -19,11 +20,13 @@ public class CustomUserDetails implements UserDetails {
 
     private String password;
 
+    private Currency currency;
+
     public CustomUserDetails(User user) {
         this.id = user.getId();
         this.login = user.getLogin();
         this.email = user.getEmail();
-        this.password = user.getPassword();
+        this.currency = user.getCurrency();
     }
 
     @Override

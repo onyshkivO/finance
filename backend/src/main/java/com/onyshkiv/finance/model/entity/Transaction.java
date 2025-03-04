@@ -52,6 +52,14 @@ public class Transaction {
     @Column(name = "transaction_date", nullable = false, columnDefinition = "date")
     private LocalDate transactionDate;
 
+    @Column(name = "base_amount", nullable = false)
+    private BigDecimal baseAmount;
+
+    @Enumerated
+    @Column(name = "base_currency", nullable = false)
+    @JdbcType(PostgreSQLEnumJdbcType.class)
+    private Currency baseCurrency;
+
     @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
 

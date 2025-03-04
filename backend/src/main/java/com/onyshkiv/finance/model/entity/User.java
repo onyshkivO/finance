@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -26,6 +28,11 @@ public class User {
 
     @Column(name = "password")
     private String password;
+
+    @Enumerated
+    @Column(name = "currency", nullable = false)
+    @JdbcType(PostgreSQLEnumJdbcType.class)
+    private Currency currency;
 
     @OneToMany(mappedBy = "userId", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Category> categories;
