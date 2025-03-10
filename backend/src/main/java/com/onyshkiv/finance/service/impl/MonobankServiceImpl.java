@@ -9,12 +9,10 @@ import com.onyshkiv.finance.model.dto.monobank.MonobankClientDto;
 import com.onyshkiv.finance.model.dto.monobank.StatementItemDetailsDto;
 import com.onyshkiv.finance.model.dto.monobank.StatementItemDto;
 import com.onyshkiv.finance.model.entity.*;
-import com.onyshkiv.finance.repository.CategoryMccRepository;
-import com.onyshkiv.finance.repository.MonobankAccountRepository;
-import com.onyshkiv.finance.repository.MonobankAuthRepository;
-import com.onyshkiv.finance.repository.TransactionRepository;
+import com.onyshkiv.finance.repository.*;
 import com.onyshkiv.finance.security.SecurityContextHelper;
 import com.onyshkiv.finance.service.MonobankService;
+import com.onyshkiv.finance.service.TransactionService;
 import com.onyshkiv.finance.util.ApplicationMapper;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
@@ -53,6 +51,7 @@ public class MonobankServiceImpl implements MonobankService {
     private static final String BASIC_URI = "http://13.60.241.29:80";
     private static final String CONFIRM_WEBHOOK_URL = BASIC_URI + "/mono/confirm";
     private static final String TRANSACTION_WEBHOOK_URL = BASIC_URI + "/mono/transaction";
+    private final UserRepository userRepository;
 
     @Value("${monobank.x-key-id}")
     private String xKeyId;
@@ -67,6 +66,7 @@ public class MonobankServiceImpl implements MonobankService {
     private final ApplicationMapper applicationMapper;
     private final TransactionRepository transactionRepository;
     private final CategoryMccRepository categoryMccRepository;
+    private final TransactionService transactionService;
 
 
     @Autowired
@@ -76,7 +76,10 @@ public class MonobankServiceImpl implements MonobankService {
                                MonobankAccountRepository monobankAccountRepository,
                                SecurityContextHelper securityContextHelper,
                                ApplicationMapper applicationMapper,
-                               TransactionRepository transactionRepository, CategoryMccRepository categoryMccRepository) {
+                               TransactionRepository transactionRepository,
+                               CategoryMccRepository categoryMccRepository,
+                               UserRepository userRepository,
+                               TransactionService transactionService) {
         this.objectMapper = objectMapper;
         this.monobankAuthRepository = monobankAuthRepository;
         this.httpClient = httpClient;
@@ -85,6 +88,8 @@ public class MonobankServiceImpl implements MonobankService {
         this.applicationMapper = applicationMapper;
         this.transactionRepository = transactionRepository;
         this.categoryMccRepository = categoryMccRepository;
+        this.userRepository = userRepository;
+        this.transactionService = transactionService;
     }
 
     @Transactional
@@ -158,18 +163,30 @@ public class MonobankServiceImpl implements MonobankService {
         TransactionType type = transactionDetails.getAmount().compareTo(BigInteger.ZERO) > 0 ? TransactionType.INCOME : TransactionType.EXPENSE;
         BigDecimal amount = new BigDecimal(transactionDetails.getAmount()).divide(BigDecimal.valueOf(100)).abs();
         Optional<UUID> categoryIdOptional = categoryMccRepository.getCategoryIdByMccAndUserIdAndType(transactionDetails.getMcc(), userId, type);
+        Currency transactionCurrency = convertCurrencyCodeToCurrency(transactionDetails.getCurrencyCode());
+        User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found with id " + userId));
 
         Transaction transaction = Transaction.builder()
                 .id(UUID.randomUUID())
                 .userId(userId)
                 .category(categoryIdOptional.map(Category::new).orElse(null))
                 .type(type)
-                .amount(amount)
                 .description(transactionDetails.getDescription())
                 .transactionDate(transactionDetails.getTransactionDate())
                 .build();
+        transactionService.setTransactionAmountInternal(amount, transactionCurrency, user.getCurrency(), transaction);
         transactionRepository.save(transaction);
 
+    }
+
+    private Currency convertCurrencyCodeToCurrency(Integer currencyCode) {
+        return switch (currencyCode) {
+            case 978 -> Currency.EUR;
+            case 840 -> Currency.USD;
+            case 980 -> Currency.UAH;
+            default ->
+                    throw new UnsupportedOperationException("Cannot convert currencyCode " + currencyCode + " to currency");
+        };
     }
 
     @Override

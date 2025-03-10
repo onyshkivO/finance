@@ -3,6 +3,28 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+    <changeSet id="create-currency-enum" author="onyshkiv" dbms="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sqlCheck expectedResult="1">
+                    SELECT COUNT(*) FROM pg_type WHERE typname = 'currency_enum';
+                </sqlCheck>
+            </not>
+        </preConditions>
+        <sql>
+            CREATE TYPE currency_enum AS ENUM (
+                'AED', 'AFN', 'ALL', 'AMD', 'ANG', 'AOA', 'ARS', 'AUD', 'AZN', 'BAM',
+                'BDT', 'BGN', 'BHD', 'BIF', 'BMD', 'BND', 'BOB', 'BRL', 'BSD', 'BTN',
+                'BWP', 'BYN', 'CAD', 'CHF', 'CLP', 'CNY', 'COP', 'CRC', 'CZK', 'DKK',
+                'DOP', 'DZD', 'EGP', 'EUR', 'GBP', 'GEL', 'GHS', 'HKD', 'HRK', 'HUF',
+                'IDR', 'ILS', 'INR', 'IQD', 'IRR', 'ISK', 'JMD', 'JOD', 'JPY', 'KES',
+                'KGS', 'KHR', 'KRW', 'KWD', 'KZT', 'LAK', 'LBP', 'LKR', 'LYD', 'MAD',
+                'MDL', 'MKD', 'MMK', 'MNT', 'MXN', 'MYR', 'MZN', 'NAD', 'NGN', 'NZD',
+                'OMR', 'PEN', 'PHP', 'PKR', 'PLN', 'QAR', 'RON', 'RSD', 'SAR', 'SEK',
+                'SGD', 'THB', 'TRY', 'UAH', 'USD', 'VND', 'ZAR'
+                );
+        </sql>
+    </changeSet>
     <changeSet id="create_user_table" author="onyshkiv" dbms="postgresql">
         <preConditions onFail="MARK_RAN">
             <and>
@@ -27,7 +49,9 @@
             <column name="password" type="VARCHAR(255)">
                 <constraints nullable="false"/>
             </column>
-
+            <column name="currency" type="currency_enum" defaultValue="UAH">
+                <constraints nullable="false"/>
+            </column>
             <column name="created_at" type="TIMESTAMP">
                 <constraints nullable="false"/>
             </column>
@@ -146,6 +170,12 @@
             </column>
             <column name="description" type="VARCHAR(255)"/>
             <column name="transaction_date" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="base_amount" type="DECIMAL(10,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="base_currency" type="currency_enum" defaultValue="UAH">
                 <constraints nullable="false"/>
             </column>
             <column name="created_at" type="TIMESTAMP">
