@@ -121,3 +121,9 @@ export async function loginUserAction(prevState: any, formData: FormData) {
 
     redirect("/");
 }
+
+export async function logoutAction() {
+    const cookieStore = await cookies();
+    cookieStore.set("jwtToken", "", { ...config, maxAge: 0 });
+    redirect("/");
+}

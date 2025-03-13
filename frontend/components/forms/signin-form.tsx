@@ -7,6 +7,7 @@ import { useActionState } from "react";
 import { loginUserAction } from "@/data/actions/auth-actions";
 import { BackendErrors } from "@/components/custom/auth_errors";
 import { ZodErrors } from "@/components/custom/zod-errors";
+import { SubmitButton } from "@/components/custom/submit-button";
 
 import {
   CardTitle,
@@ -67,7 +68,7 @@ export function SigninForm() {
           </CardContent>
           <CardFooter className="flex flex-col items-center justify-center">
           <BackendErrors error={formState?.authErrors} />
-            <button className="w-full">Sign In</button>
+            <SubmitButton className="w-full" text="Sign Up" loadingText="Loading" />
           </CardFooter>
         </Card>
         <div className="mt-4 text-center text-sm">

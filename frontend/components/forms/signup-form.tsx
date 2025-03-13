@@ -5,6 +5,7 @@ import { useActionState } from "react";
 
 import { registerUserAction } from "@/data/actions/auth-actions";
 import { BackendErrors } from "@/components/custom/auth_errors";
+import { SubmitButton } from "@/components/custom/submit-button";
 
 import {
   CardTitle,
@@ -79,7 +80,7 @@ export function SignupForm() {
           </CardContent>
           <CardFooter className="flex flex-col items-center justify-center">
           <BackendErrors error={formState?.authErrors} />
-            <button className="w-full">Sign Up</button>
+          <SubmitButton className="w-full" text="Sign Up" loadingText="Loading" />
           </CardFooter>
         </Card>
         <div className="mt-4 text-center text-sm">
