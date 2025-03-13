@@ -26,6 +26,7 @@ public class CustomUserDetails implements UserDetails {
         this.id = user.getId();
         this.login = user.getLogin();
         this.email = user.getEmail();
+        this.password = user.getPassword();
         this.currency = user.getCurrency();
     }
 
