@@ -2,7 +2,6 @@ package com.onyshkiv.finance.security;
 
 import com.google.common.base.Preconditions;
 import com.onyshkiv.finance.exception.UnauthorizedException;
-import com.onyshkiv.finance.model.dto.UserDataDto;
 import io.micrometer.common.util.StringUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;

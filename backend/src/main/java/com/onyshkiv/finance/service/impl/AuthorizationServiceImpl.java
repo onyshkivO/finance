@@ -1,7 +1,7 @@
 package com.onyshkiv.finance.service.impl;
 
 import com.onyshkiv.finance.exception.DuplicationException;
-import com.onyshkiv.finance.exception.InvalidCredentialsException;
+import com.onyshkiv.finance.exception.UnauthorizedException;
 import com.onyshkiv.finance.model.dto.request.SignInRequest;
 import com.onyshkiv.finance.model.dto.request.SignUpRequest;
 import com.onyshkiv.finance.model.dto.response.AuthorizationResponse;
@@ -10,7 +10,6 @@ import com.onyshkiv.finance.model.entity.User;
 import com.onyshkiv.finance.repository.UserRepository;
 import com.onyshkiv.finance.security.JwtUtil;
 import com.onyshkiv.finance.service.AuthorizationService;
-//import com.onyshkiv.finance.util.ApplicationMapper;
 import com.onyshkiv.finance.util.ApplicationMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,7 +51,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
             return new AuthorizationResponse(jwtUtil.generateToken(login));
         } catch (AuthenticationException ex) {
             log.error("Authentication failed for user: {}", login, ex);
-            throw new InvalidCredentialsException("Invalid login or password", ex);
+            throw new UnauthorizedException("Invalid login or password", ex);
         }
     }
 
@@ -72,7 +71,6 @@ public class AuthorizationServiceImpl implements AuthorizationService {
         }
 
         User user = applicationMapper.signUpRequestToUser(signUpRequest);
-//        User user = new User();
         user.setId(UUID.randomUUID());
         user.setCurrency(Currency.UAH);//todo add currency to dto(optional)
         user.setPassword(passwordEncoder.encode(user.getPassword()));

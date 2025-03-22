@@ -53,7 +53,6 @@ public class SecurityConfig {
                         .requestMatchers("/mono/transaction").permitAll()
                         .anyRequest().authenticated()
                 )
-//                .httpBasic(Customizer.withDefaults())
                 .sessionManagement(manager -> manager.sessionCreationPolicy(STATELESS))
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
