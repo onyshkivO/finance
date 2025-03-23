@@ -8,7 +8,6 @@ const config = {
     maxAge: 60 * 60 * 24 * 7,
     path: "/",
     domain: process.env.HOST ?? "localhost",
-    httpOnly: true,
     secure: process.env.NODE_ENV === "development",
 };
 
@@ -48,7 +47,7 @@ const schemaLogin = z.object({
         .max(50, { message: "User password should be between 6 and 50 symbols" })
         .regex(/^[$\/A-Za-z0-9_-]{6,60}$/, { message: "Bad password format" })
 });
-
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function registerUserAction(prevState: any, formData: FormData) {
     const enteredData = {
         login: formData.get("login") as string,
@@ -80,12 +79,18 @@ export async function registerUserAction(prevState: any, formData: FormData) {
         };
     }
 
+    const userData = {
+        jwtToken: response.data.token,
+        login: response.data.login,
+        currency: response.data.currency,
+        id: response.data.id
+    };
     const cookieStore = await cookies();
-    cookieStore.set("jwtToken", response.data.token, config);
+    cookieStore.set("userData", JSON.stringify(userData), config);
 
     redirect("/");
 }
-
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function loginUserAction(prevState: any, formData: FormData) {
     const enteredData = {
         login: formData.get("login") as string,
@@ -116,14 +121,20 @@ export async function loginUserAction(prevState: any, formData: FormData) {
         };
     }
 
+    const userData = {
+        jwtToken: response.data.token,
+        login: response.data.login,
+        currency: response.data.currency,
+        id: response.data.id
+    };
     const cookieStore = await cookies();
-    cookieStore.set("jwtToken", response.data.token, config);
+    cookieStore.set("userData", JSON.stringify(userData), config);
 
     redirect("/");
 }
 
 export async function logoutAction() {
     const cookieStore = await cookies();
-    cookieStore.set("jwtToken", "", { ...config, maxAge: 0 });
+    cookieStore.set("userData", "", { ...config, maxAge: 0 });
     redirect("/");
 }

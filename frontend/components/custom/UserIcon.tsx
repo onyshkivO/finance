@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React from "react";
+import { useUser } from "@/context/UserContext";
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -9,29 +10,17 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { logoutAction } from "@/data/actions/auth-actions";
 
 function UserIcon() {
-    const [username, setUsername] = useState<string | null>(null);
-
-    useEffect(() => {
-        // function getCookie(name: string) {
-        //     const match = document.cookie.match(new RegExp("(^| )" + name + "=([^;]+)"));
-        //     return match ? decodeURIComponent(match[2]) : null;
-        // }
-
-        const storedUsername = "usernmae"
-        if (storedUsername) {
-            setUsername(storedUsername);
-        }
-    }, []);
+    const { user } = useUser();
 
     return (
         <div className="flex items-center">
-            {username ? (
+            {user  ? (
                 <DropdownMenu>
                     <DropdownMenuTrigger className="flex items-center gap-2 cursor-pointer">
                         <Avatar>
-                            <AvatarFallback>{username.charAt(0).toUpperCase()}</AvatarFallback>
+                            <AvatarFallback>{user.login.charAt(0).toUpperCase()}</AvatarFallback>
                         </Avatar>
-                        <span className="text-lg font-medium text-muted-foreground">{username}</span>
+                        <span className="text-lg font-medium text-muted-foreground">{user.login}</span>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                         <DropdownMenuItem asChild className="cursor-pointer">

@@ -1,5 +1,5 @@
 "use client";
-import Logo, {LogoMobile} from "@/components/custom/Logo"
+import Logo from "@/components/custom/Logo"
 import React, {useState} from "react"
 import {usePathname} from "next/navigation";
 import Link from "next/link";
