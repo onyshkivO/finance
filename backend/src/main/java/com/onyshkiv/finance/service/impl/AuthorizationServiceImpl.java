@@ -20,6 +20,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -48,7 +49,9 @@ public class AuthorizationServiceImpl implements AuthorizationService {
         try {
             authenticationProvider.authenticate(new UsernamePasswordAuthenticationToken(login, signInRequest.getPassword()));
             log.info("User signed in successfully: {}", login);
-            return new AuthorizationResponse(jwtUtil.generateToken(login));
+            String jwtToken = jwtUtil.generateToken(login);
+            User authorizedUser = userRepository.findByLogin(login).get();
+            return new AuthorizationResponse(jwtToken, authorizedUser.getLogin(), authorizedUser.getId(), authorizedUser.getCurrency());
         } catch (AuthenticationException ex) {
             log.error("Authentication failed for user: {}", login, ex);
             throw new UnauthorizedException("Invalid login or password", ex);
@@ -77,6 +80,6 @@ public class AuthorizationServiceImpl implements AuthorizationService {
         User savedUser = userRepository.save(user);
         String jwt = jwtUtil.generateToken(user.getLogin());
         log.info("User signed up successfully: {}", savedUser.getLogin());
-        return new AuthorizationResponse(jwt);
+        return new AuthorizationResponse(jwt, savedUser.getLogin(), savedUser.getId(), savedUser.getCurrency());
     }
 }
