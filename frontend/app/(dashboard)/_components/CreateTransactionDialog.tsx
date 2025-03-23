@@ -1,11 +1,11 @@
 "use client";
 
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useUser } from "@/context/UserContext";
+// import { useUser } from "@/context/UserContext";
 import { TransactionType } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { CreateTransactionSchema, CreateTransactionSchemaType } from "@/schema/transaction";
-import { redirect } from "next/navigation";
+// import { redirect } from "next/navigation";
 import { ReactNode } from "react";
 import { zodResolver } from "@hookform/resolvers/zod"
 import React from "react";
@@ -14,23 +14,27 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } fr
 import { Input } from "@/components/ui/input";
 import CategoryPicker from "./CategoryPicker";
 
+interface UserData {
+    token: string;
+    login: string;
+    currency: string;
+    id: string;
+}
+
 interface Props {
     trigger: ReactNode;
     type: TransactionType;
+    user: UserData | null;
 }
 
 
-function CreateTransactionDialog({ trigger, type }: Props) {
-    const { user } = useUser();
-    if (!user) {
-        redirect("/signin");
-    }
+function CreateTransactionDialog({ trigger, type, user }: Props) {
     const form = useForm<CreateTransactionSchemaType>({
         resolver: zodResolver(CreateTransactionSchema),
         defaultValues: {
             type: type,
             date: new Date(),
-            currency: user.currency
+            currency: user?.currency,
         },
     });
     return (
@@ -39,7 +43,7 @@ function CreateTransactionDialog({ trigger, type }: Props) {
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle>
-                        Create a new{" "}
+                        Create a new
                         <span
                             className={cn(
                                 "m-1",
@@ -47,7 +51,7 @@ function CreateTransactionDialog({ trigger, type }: Props) {
                             )}
                         >
                             {type}
-                        </span>{" "}
+                        </span>
                         transaction
                     </DialogTitle>
                 </DialogHeader>
