@@ -5,7 +5,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Category, TransactionType } from "@/lib/types";
 import { useQuery } from "@tanstack/react-query";
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect } from "react";
 import CreateCategoryDialog from "./CreateCategoryDialog";
 
 import { getUserCategoriesByType } from "@/data/services/category-service";
@@ -14,24 +14,28 @@ import { cn } from "@/lib/utils";
 
 interface Props {
   type: TransactionType;
+  onChange: (value:  string) => void;
 }
 
-function CategoryPicker({ type }: Props) {
+function CategoryPicker({ type, onChange}: Props) {
   const [open, setOpen] = React.useState(false);
-  /* eslint-disable @typescript-eslint/no-unused-vars */
   const [value, setValue] = React.useState("");
 
+  useEffect(() => {
+    if (!value) return;
+    onChange(value);
+  }, [onChange, value]);
   const categoriesQuery = useQuery({
     queryKey: ["categories", type],
     queryFn: () => getUserCategoriesByType(type),
   });
 
   const selectedCategory = categoriesQuery.data?.find(
-    (category: Category) => category.name === value
+    (category: Category) => category.id === value
   );
 
   const successCallback = useCallback((category: Category) => {
-    setValue(category.name)
+    setValue(category.id)
     setOpen((prev) => !prev)
   },
     [setValue, setOpen]
@@ -72,9 +76,9 @@ function CategoryPicker({ type }: Props) {
               {categoriesQuery.data &&
                 categoriesQuery.data.map((category: Category) => (
                   <CommandItem
-                    key={category.name}
+                    key={category.id}
                     onSelect={() => {
-                      setValue(category.name);
+                      setValue(category.id);
                       setOpen((prev) => !prev);
                     }}
                   >
@@ -82,7 +86,7 @@ function CategoryPicker({ type }: Props) {
                     <Check
                       className={cn(
                         "mr-2 w-4 h-4 opacity-0",
-                        value === category.name && "opacity-100"
+                        value === category.id && "opacity-100"
                       )}
                     />
                   </CommandItem>
