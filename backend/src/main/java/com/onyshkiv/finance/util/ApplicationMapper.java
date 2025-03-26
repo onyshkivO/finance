@@ -23,6 +23,7 @@ public abstract class ApplicationMapper {
                 .id(category.getId())
                 .type(category.getType().name())
                 .name(category.getName())
+                .icon(category.getIcon())
                 .mccCodes(category.getCategoryMccs().stream().map(CategoryMcc::getMccCode).collect(Collectors.toSet()))
                 .build();
     }

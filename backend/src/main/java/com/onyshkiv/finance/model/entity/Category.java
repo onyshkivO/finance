@@ -29,6 +29,8 @@ public class Category {
 
     @Column(name = "name", nullable = false)
     private String name;
+    @Column(name = "icon")
+    private String icon;
 
     @Enumerated
     @Column(name = "type", nullable = false)

@@ -52,6 +52,7 @@ public class JwtFilter extends OncePerRequestFilter {
             }
             filterChain.doFilter(request, response);
         } catch (JwtException | IllegalArgumentException | UsernameNotFoundException ex) {
+            log.error("Authorization error: {}", ex.getMessage(), ex);
             handleAuthenticationException(response);
         }
     }

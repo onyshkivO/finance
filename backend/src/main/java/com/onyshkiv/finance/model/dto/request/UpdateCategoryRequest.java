@@ -16,5 +16,7 @@ public class UpdateCategoryRequest {
     @NotBlank(message = "invalid category name")
     private String name;
 
+    private String icon;
+
     private Set<Integer> mccCodes;
 }
