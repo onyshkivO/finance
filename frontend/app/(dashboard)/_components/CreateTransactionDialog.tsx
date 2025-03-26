@@ -1,11 +1,9 @@
 "use client";
 
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-// import { useUser } from "@/context/UserContext";
-import { TransactionType } from "@/lib/types";
+import { TransactionType, UserData } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { CreateTransactionSchema, CreateTransactionSchemaType } from "@/schema/transaction";
-// import { redirect } from "next/navigation";
 import { ReactNode } from "react";
 import { zodResolver } from "@hookform/resolvers/zod"
 import React from "react";
@@ -14,12 +12,6 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } fr
 import { Input } from "@/components/ui/input";
 import CategoryPicker from "./CategoryPicker";
 
-interface UserData {
-    token: string;
-    login: string;
-    currency: string;
-    id: string;
-}
 
 interface Props {
     trigger: ReactNode;
@@ -96,7 +88,7 @@ function CreateTransactionDialog({ trigger, type, user }: Props) {
                                     <FormItem>
                                         <FormLabel>Category</FormLabel>
                                         <FormControl>
-                                            <CategoryPicker type={type}/>
+                                            <CategoryPicker type={type} />
                                         </FormControl>
                                         <FormDescription>
                                             Select a category for this transaction

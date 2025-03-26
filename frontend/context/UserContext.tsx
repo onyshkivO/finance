@@ -1,14 +1,7 @@
 "use client";
 
+import { UserData } from "@/lib/types";
 import React, { createContext, useContext, useEffect, useState } from "react";
-
-// Define UserData type
-interface UserData {
-    token: string;
-    login: string;
-    currency: string;
-    id: string;
-}
 
 // Create Context
 const UserContext = createContext<{

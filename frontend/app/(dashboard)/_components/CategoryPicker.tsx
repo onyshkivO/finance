@@ -1,22 +1,17 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Command, CommandInput } from "@/components/ui/command";
+import { Command, CommandEmpty, CommandInput } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { TransactionType } from "@/lib/types";
+import { Category, TransactionType } from "@/lib/types";
 import { useQuery } from "@tanstack/react-query";
 import React from "react";
 import CreateCategoryDialog from "./CreateCategoryDialog";
 
+import { getUserCategoriesByType } from "@/data/services/category-service";
+
 interface Props {
   type: TransactionType;
-}
-interface Category {
-  id: string;
-  name: string;
-  type: string;
-  icon: string;
-  mccCodes: Set<number>;
 }
 
 function CategoryPicker({ type }: Props) {
@@ -26,9 +21,7 @@ function CategoryPicker({ type }: Props) {
 
   const categoriesQuery = useQuery({
     queryKey: ["categories", type],
-    queryFn: () =>
-      fetch(`/category/type/${type}`).then((res) =>
-        res.json()),
+    queryFn: () => getUserCategoriesByType(type),
   });
 
   const selectedCategory = categoriesQuery.data?.find(
@@ -52,11 +45,15 @@ function CategoryPicker({ type }: Props) {
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[200px] p-0">
-        <Command onSubmit={(e) => {
-          e.preventDefault();
-        }}>
+        <Command onSubmit={(e) => e.preventDefault()}>
           <CommandInput placeholder="Search category..." />
-        <CreateCategoryDialog type={type}></CreateCategoryDialog>
+          <CreateCategoryDialog type={type} />
+          <CommandEmpty>
+            <p>Category not found</p>
+            <p className="text-xs text-muted-foreground">
+              Tip: Create a new category
+            </p>
+          </CommandEmpty>
         </Command>
       </PopoverContent>
     </Popover>
