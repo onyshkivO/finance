@@ -1,6 +1,6 @@
 "use client";
 
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { TransactionType, UserData } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { CreateTransactionSchema, CreateTransactionSchemaType } from "@/schema/transaction";
@@ -8,9 +8,14 @@ import { ReactNode, useCallback } from "react";
 import { zodResolver } from "@hookform/resolvers/zod"
 import React from "react";
 import { useForm } from "react-hook-form";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from "@/components/ui/form";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import CategoryPicker from "./CategoryPicker";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { CalendarIcon } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
 
 
 interface Props {
@@ -31,10 +36,10 @@ function CreateTransactionDialog({ trigger, type, user }: Props) {
     });
     const handleCategoryChange = useCallback(
         (value: string) => {
-          form.setValue("category", value);
+            form.setValue("category", value);
         },
         [form]
-      );
+    );
     return (
         <Dialog>
             <DialogTrigger asChild>{trigger}</DialogTrigger>
@@ -94,7 +99,7 @@ function CreateTransactionDialog({ trigger, type, user }: Props) {
                                     <FormItem>
                                         <FormLabel>Category</FormLabel>
                                         <FormControl>
-                                            <CategoryPicker type={type} onChange={handleCategoryChange}/>
+                                            <CategoryPicker type={type} onChange={handleCategoryChange} />
                                         </FormControl>
                                         <FormDescription>
                                             Select a category for this transaction
@@ -102,9 +107,79 @@ function CreateTransactionDialog({ trigger, type, user }: Props) {
                                     </FormItem>
                                 )}
                             />
+                            <FormField
+                                control={form.control}
+                                name="date"
+                                /* eslint-disable @typescript-eslint/no-unused-vars */
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Transaction Date</FormLabel>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <FormControl>
+                                                    <Button
+                                                        variant={"outline"}
+                                                        className={cn(
+                                                            "w-[200px] pl-3 text-left font-normal",
+                                                            !field.value && "text-muted-foreground"
+                                                        )}
+                                                    >
+                                                        {field.value ? (
+                                                            format(field.value, 'PPP')
+                                                        ) : (
+                                                            <span>Pick a date</span>
+                                                        )}
+                                                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                                    </Button>
+                                                </FormControl>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-auto p-0">
+                                                <Calendar
+                                                    mode="single"
+                                                    selected={field.value}
+                                                    onSelect={field.onChange}
+                                                    initialFocus
+                                                    disabled={(date) => date > new Date()}
+                                                />
+                                            </PopoverContent>
+                                        </Popover>
+                                        <FormDescription>
+                                            Select a date for this transaction
+                                        </FormDescription>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
                         </div>
                     </form>
                 </Form>
+                <DialogFooter>
+                    <DialogClose asChild>
+                        <Button
+                            className="cursor-pointer"
+                            type="button"
+                            variant={"secondary"}
+                            onClick={() => {
+                                form.reset();
+                            }}
+                        >
+                            Cancel
+                        </Button>
+                    </DialogClose>
+                    {/* <Button
+                        onClick={form.handleSubmit(onSubmit)}
+                        disabled={isPending}
+                        className="cursor-pointer"
+                    >
+                        {isPending ? (
+                            <>
+                                Creating <Loader2 className="animate-spin h-4 w-4 ml-2" />
+                            </>
+                        ) : (
+                            "Create"
+                        )}
+                    </Button> */}
+                </DialogFooter>
             </DialogContent>
         </Dialog>
     );
