@@ -1,10 +1,10 @@
 "use client";
 
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
-import { TransactionType, UserData } from "@/lib/types";
+import { CURRENCIES, TransactionType, UserData } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { CreateTransactionSchema, CreateTransactionSchemaType } from "@/schema/transaction";
-import { ReactNode, useCallback } from "react";
+import { ReactNode, useCallback, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod"
 import React from "react";
 import { useForm } from "react-hook-form";
@@ -13,9 +13,13 @@ import { Input } from "@/components/ui/input";
 import CategoryPicker from "./CategoryPicker";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Loader2 } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { CreateTransaction } from "@/data/services/transaction-service";
+import { toast } from "sonner";
 
 
 interface Props {
@@ -34,14 +38,63 @@ function CreateTransactionDialog({ trigger, type, user }: Props) {
             currency: user?.currency,
         },
     });
+    const [open, setOpen] = useState(false);
+
     const handleCategoryChange = useCallback(
         (value: string) => {
             form.setValue("category", value);
         },
         [form]
     );
+
+    const queryClient = useQueryClient();
+
+    const { mutate, isPending } = useMutation({
+        mutationFn: CreateTransaction,
+        onSuccess: () => {
+            toast.success("Transaction created successfully ⭐", {
+                id: "create-transaction",
+            });
+
+            // Reset form fields
+            form.reset({
+                type,
+                description: "",
+                amount: 0,
+                date: new Date(),
+                category: undefined,
+                currency: user?.currency, // Reset to user's default currency
+            });
+
+            // Invalidate overview query to refetch data
+            queryClient.invalidateQueries({
+                queryKey: ["overview"],
+            });
+            setOpen((prev) => !prev);
+        },
+        // onError: (error: Error) => {
+        //     toast.error(error.message || "Failed to create transaction", {
+        //         id: "create-transaction-error",
+        //     });
+
+
+        // }
+    });
+
+    const onSubmit = useCallback(
+        (values: CreateTransactionSchemaType) => {
+            toast.loading("Creating transaction...", {
+                id: "create-transaction"
+            });
+
+            mutate({
+                ...values
+            });
+        },
+        [mutate]
+    );
     return (
-        <Dialog>
+        <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>{trigger}</DialogTrigger>
             <DialogContent>
                 <DialogHeader>
@@ -59,7 +112,7 @@ function CreateTransactionDialog({ trigger, type, user }: Props) {
                     </DialogTitle>
                 </DialogHeader>
                 <Form {...form}>
-                    <form className="space-y-4">
+                    <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
                         <FormField
                             control={form.control}
                             name="description"
@@ -75,28 +128,59 @@ function CreateTransactionDialog({ trigger, type, user }: Props) {
                                 </FormItem>
                             )}
                         />
-                        <FormField
-                            control={form.control}
-                            name="amount"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Amount</FormLabel>
-                                    <FormControl>
-                                        <Input defaultValue={0} type="number" {...field} />
-                                    </FormControl>
-                                    <FormDescription>
-                                        Transaction amount (required)
-                                    </FormDescription>
-                                </FormItem>
-                            )}
-                        />
+                        <div className="flex items-center justify-between gap-2">
+
+                            <FormField
+                                control={form.control}
+                                name="amount"
+                                render={({ field }) => (
+                                    <FormItem  className="flex flex-col">
+                                        <FormLabel>Amount</FormLabel>
+                                        <FormControl>
+                                            <Input defaultValue={0} type="number" {...field} />
+                                        </FormControl>
+                                        <FormDescription>
+                                            Transaction amount (required)
+                                        </FormDescription>
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="currency"
+                                render={({ field }) => (
+                                    <FormItem className="w-[200px] flex flex-col">
+                                        <FormLabel>Currency</FormLabel>
+                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                            <FormControl>
+                                                <SelectTrigger className="w-[200px]">
+                                                    <SelectValue placeholder="Select currency" />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent className="w-[200px]">
+                                                <div className="max-h-[300px] overflow-y-auto">
+                                                    {CURRENCIES.map((currency) => (
+                                                        <SelectItem key={currency.code} value={currency.code}>
+                                                            {currency.code} - {currency.name}
+                                                        </SelectItem>
+                                                    ))}
+                                                </div>
+                                            </SelectContent>
+                                        </Select>
+                                        <FormDescription>
+                                            Transaction currency (required)
+                                        </FormDescription>
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
                         <div className="flex items-center justify-between gap-2">
                             <FormField
                                 control={form.control}
                                 name="category"
                                 /* eslint-disable @typescript-eslint/no-unused-vars */
                                 render={({ field }) => (
-                                    <FormItem>
+                                    <FormItem className="flex flex-col">
                                         <FormLabel>Category</FormLabel>
                                         <FormControl>
                                             <CategoryPicker type={type} onChange={handleCategoryChange} />
@@ -110,9 +194,8 @@ function CreateTransactionDialog({ trigger, type, user }: Props) {
                             <FormField
                                 control={form.control}
                                 name="date"
-                                /* eslint-disable @typescript-eslint/no-unused-vars */
                                 render={({ field }) => (
-                                    <FormItem>
+                                    <FormItem  className="flex flex-col">
                                         <FormLabel>Transaction Date</FormLabel>
                                         <Popover>
                                             <PopoverTrigger asChild>
@@ -137,7 +220,10 @@ function CreateTransactionDialog({ trigger, type, user }: Props) {
                                                 <Calendar
                                                     mode="single"
                                                     selected={field.value}
-                                                    onSelect={field.onChange}
+                                                    onSelect={(value)=>{
+                                                        if(!value) return;
+                                                        field.onChange(value);
+                                                    }}
                                                     initialFocus
                                                     disabled={(date) => date > new Date()}
                                                 />
@@ -166,7 +252,7 @@ function CreateTransactionDialog({ trigger, type, user }: Props) {
                             Cancel
                         </Button>
                     </DialogClose>
-                    {/* <Button
+                    <Button
                         onClick={form.handleSubmit(onSubmit)}
                         disabled={isPending}
                         className="cursor-pointer"
@@ -178,7 +264,7 @@ function CreateTransactionDialog({ trigger, type, user }: Props) {
                         ) : (
                             "Create"
                         )}
-                    </Button> */}
+                    </Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
@@ -186,3 +272,7 @@ function CreateTransactionDialog({ trigger, type, user }: Props) {
 }
 
 export default CreateTransactionDialog;
+
+// function onSuccess(data: any, variables: { type: "income" | "expense"; amount: number; date: Date; category: string; currency: string; description?: string | undefined; }, context: unknown): unknown {
+//     throw new Error("Function not implemented.");
+// }
