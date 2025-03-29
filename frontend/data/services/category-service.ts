@@ -19,33 +19,6 @@ export async function getUserCategoriesByType(
         throw error;
     }
  }
-// export async function getUserCategoriesByType(type: string) {
-//     try {
-//         const response = await clientApi.get<Category[]>(`/category/type/${type.toUpperCase()}`);
-//         console.log("Fetched categories:", response.data); // Log the categories
-//
-//         const filteredData = response.data.map((category: any) => ({
-//             id: category.id,
-//             name: category.name,
-//             type: category.type,
-//             icon: category.icon,
-//             mccCodes: category.mccCodes
-//         }));
-//
-//         return {
-//             status: response.status,
-//             data: filteredData,
-//             error: null,
-//         };
-//     } catch (error: any) {
-//         console.error("Error retrieving user categories:", error);
-//         return {
-//             status: error.response?.status || 500,
-//             data: null,
-//             error: error.response?.data || { message: "Something went wrong. Please try again later." },
-//         };
-//     }
-// }
 
 export async function CreateCategory(form: CreateCategorySchemaType) {
     const parsedBody = CreateCategorySchema.safeParse(form);

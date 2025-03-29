@@ -72,13 +72,12 @@ function CreateTransactionDialog({ trigger, type, user }: Props) {
             });
             setOpen((prev) => !prev);
         },
-        // onError: (error: Error) => {
-        //     toast.error(error.message || "Failed to create transaction", {
-        //         id: "create-transaction-error",
-        //     });
-
-
-        // }
+        onError: (error) => {
+            console.error("Transaction creation failed:", error);
+            toast.error("Failed to create transaction. Please try again.", {
+                id: "create-transaction",
+            });
+        },
     });
 
     const onSubmit = useCallback(
