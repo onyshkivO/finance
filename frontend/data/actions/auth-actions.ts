@@ -3,6 +3,7 @@ import { z } from "zod";
 import { cookies } from "next/headers";
 import { registerUserService, loginUserService } from "@/data/services/auth-service";
 import { redirect } from "next/navigation";
+import { CURRENCIES } from "@/lib/types";
 
 const config = {
     maxAge: 60 * 60 * 24 * 7,
@@ -78,11 +79,12 @@ export async function registerUserAction(prevState: any, formData: FormData) {
             inputs: enteredData,
         };
     }
+    const userCurrency = CURRENCIES.find(c => c.code === response.data.currency) || { code: response.data.currency, name: "Unknown Currency" };
 
     const userData = {
         jwtToken: response.data.token,
         login: response.data.login,
-        currency: response.data.currency,
+        currency: userCurrency,
         id: response.data.id
     };
     const cookieStore = await cookies();
@@ -121,10 +123,12 @@ export async function loginUserAction(prevState: any, formData: FormData) {
         };
     }
 
+    const userCurrency = CURRENCIES.find(c => c.code === response.data.currency) || { code: response.data.currency, name: "Unknown Currency" };
+
     const userData = {
         jwtToken: response.data.token,
         login: response.data.login,
-        currency: response.data.currency,
+        currency: userCurrency,
         id: response.data.id
     };
     const cookieStore = await cookies();

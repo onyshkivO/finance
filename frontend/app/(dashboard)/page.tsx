@@ -3,6 +3,8 @@ import {cookies} from 'next/headers';
 import {redirect} from "next/navigation"
 import {Button} from "@/components/ui/button";
 import CreateTransactionDialog from './_components/CreateTransactionDialog';
+import Overview from './_components/Overview';
+import History from './_components/History';
 
 async function page() {
     const cookieStore = await cookies();
@@ -41,6 +43,8 @@ async function page() {
                     </div>
                 </div>
             </div>
+            <Overview userCurrency={user.currency}/>
+            <History userCurrency={user.currency}/>
         </div>
     );
 }

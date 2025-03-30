@@ -35,7 +35,7 @@ function CreateTransactionDialog({ trigger, type, user }: Props) {
         defaultValues: {
             type: type,
             date: new Date(),
-            currency: user?.currency,
+            currency: user?.currency.code,
         },
     });
     const [open, setOpen] = useState(false);
@@ -63,7 +63,7 @@ function CreateTransactionDialog({ trigger, type, user }: Props) {
                 amount: 0,
                 date: new Date(),
                 category: undefined,
-                currency: user?.currency, // Reset to user's default currency
+                currency: user?.currency.code, // Reset to user's default currency
             });
 
             // Invalidate overview query to refetch data
