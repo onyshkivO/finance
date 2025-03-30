@@ -3,7 +3,6 @@ package com.onyshkiv.finance.service.impl;
 import com.onyshkiv.finance.exception.NotFoundException;
 import com.onyshkiv.finance.exception.UnsupportedException;
 import com.onyshkiv.finance.model.dto.TransactionDto;
-import com.onyshkiv.finance.model.entity.Category;
 import com.onyshkiv.finance.model.entity.Currency;
 import com.onyshkiv.finance.model.entity.Transaction;
 import com.onyshkiv.finance.model.entity.TransactionType;
