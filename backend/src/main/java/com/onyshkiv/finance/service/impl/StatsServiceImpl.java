@@ -63,7 +63,7 @@ public class StatsServiceImpl implements StatsService {
             }
         }
 
-        return new BalanceStatsResponse(income, expense);
+        return new BalanceStatsResponse(expense, income);
     }
 
     public List<CategoryStatsResponse> getCategoryStats(LocalDate from, LocalDate to) {
@@ -74,9 +74,9 @@ public class StatsServiceImpl implements StatsService {
         return results.stream()
                 .map(result -> new CategoryStatsResponse(
                         (TransactionType) result[0],
-                        ((Category) result[1]).getName(),
-                        ((Category) result[1]).getIcon(),
-                        ((BigDecimal) result[2]).doubleValue()
+                        (String) result[1],
+                        (String) result[2],
+                        ((BigDecimal) result[3]).doubleValue()
                 ))
                 .collect(Collectors.toList());
     }
