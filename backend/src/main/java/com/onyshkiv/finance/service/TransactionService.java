@@ -27,5 +27,4 @@ public interface TransactionService {
     List<TransactionDto> getUserTransactions(TransactionType transactionType);
 
     void updateAmountAfterUserBaseCurrencyChange(Currency currencyToConvert);
-
 }

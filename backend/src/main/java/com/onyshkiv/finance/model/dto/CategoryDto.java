@@ -24,5 +24,7 @@ public class CategoryDto {
     @ValidEnum(enumClass = TransactionType.class, message = "Invalid transaction type")
     private String type;
 
+    private String icon;
+
     Set<Integer> mccCodes;
 }

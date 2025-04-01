@@ -8,9 +8,16 @@ const api = axios.create({
 
 api.interceptors.request.use(
   (config) => {
-    const token = Cookies.get("jwtToken");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    // Get cookie from client-side storage
+    const userData = Cookies.get("userData");
+      console.log("userData: "+userData)
+
+    if (userData) {
+      const parsedUserData = JSON.parse(userData);
+      const token = parsedUserData?.jwtToken;
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
     return config;
   },
@@ -23,7 +30,9 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      Cookies.remove("jwtToken");
+      // Remove cookie on client-side
+      Cookies.remove("userData");
+
       if (typeof window !== "undefined") {
         window.location.href = "/signin";
       }

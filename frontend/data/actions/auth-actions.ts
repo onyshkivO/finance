@@ -3,12 +3,12 @@ import { z } from "zod";
 import { cookies } from "next/headers";
 import { registerUserService, loginUserService } from "@/data/services/auth-service";
 import { redirect } from "next/navigation";
+import { CURRENCIES } from "@/lib/types";
 
 const config = {
     maxAge: 60 * 60 * 24 * 7,
     path: "/",
     domain: process.env.HOST ?? "localhost",
-    httpOnly: true,
     secure: process.env.NODE_ENV === "development",
 };
 
@@ -48,7 +48,7 @@ const schemaLogin = z.object({
         .max(50, { message: "User password should be between 6 and 50 symbols" })
         .regex(/^[$\/A-Za-z0-9_-]{6,60}$/, { message: "Bad password format" })
 });
-
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function registerUserAction(prevState: any, formData: FormData) {
     const enteredData = {
         login: formData.get("login") as string,
@@ -79,13 +79,20 @@ export async function registerUserAction(prevState: any, formData: FormData) {
             inputs: enteredData,
         };
     }
+    const userCurrency = CURRENCIES.find(c => c.code === response.data.currency) || { code: response.data.currency, name: "Unknown Currency" };
 
+    const userData = {
+        jwtToken: response.data.token,
+        login: response.data.login,
+        currency: userCurrency,
+        id: response.data.id
+    };
     const cookieStore = await cookies();
-    cookieStore.set("jwtToken", response.data.token, config);
+    cookieStore.set("userData", JSON.stringify(userData), config);
 
     redirect("/");
 }
-
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function loginUserAction(prevState: any, formData: FormData) {
     const enteredData = {
         login: formData.get("login") as string,
@@ -116,14 +123,22 @@ export async function loginUserAction(prevState: any, formData: FormData) {
         };
     }
 
+    const userCurrency = CURRENCIES.find(c => c.code === response.data.currency) || { code: response.data.currency, name: "Unknown Currency" };
+
+    const userData = {
+        jwtToken: response.data.token,
+        login: response.data.login,
+        currency: userCurrency,
+        id: response.data.id
+    };
     const cookieStore = await cookies();
-    cookieStore.set("jwtToken", response.data.token, config);
+    cookieStore.set("userData", JSON.stringify(userData), config);
 
     redirect("/");
 }
 
 export async function logoutAction() {
     const cookieStore = await cookies();
-    cookieStore.set("jwtToken", "", { ...config, maxAge: 0 });
+    cookieStore.set("userData", "", { ...config, maxAge: 0 });
     redirect("/");
 }

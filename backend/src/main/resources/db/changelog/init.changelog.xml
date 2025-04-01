@@ -301,4 +301,15 @@
                 columnNames="user_id, account_id"
                 constraintName="uk_monobank_account_user_account"/>
     </changeSet>
+    <changeSet id="add_icon_to_category" author="onyshkiv" dbms="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="category" columnName="icon"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="category">
+            <column name="icon"
+                    type="varchar(255)"/>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

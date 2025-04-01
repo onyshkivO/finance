@@ -3,7 +3,6 @@ package com.onyshkiv.finance.service.impl;
 import com.onyshkiv.finance.exception.NotFoundException;
 import com.onyshkiv.finance.exception.UnsupportedException;
 import com.onyshkiv.finance.model.dto.TransactionDto;
-import com.onyshkiv.finance.model.entity.Category;
 import com.onyshkiv.finance.model.entity.Currency;
 import com.onyshkiv.finance.model.entity.Transaction;
 import com.onyshkiv.finance.model.entity.TransactionType;
@@ -56,7 +55,7 @@ public class TransactionServiceImpl implements TransactionService {
                     transaction.getType()));
         }
         transaction.setId(UUID.randomUUID());
-        transaction.setCategory(new Category(transactionDto.getCategory().getId()));
+        transaction.setCategory(categoryService.getCategory(transactionDto.getCategory().getId()));
         transaction.setUserId(loggedInUser.getId());
 
         setTransactionAmountInternal(transactionDto.getAmount(), transactionDto.getCurrency(), loggedInUser.getCurrency(), transaction);
@@ -65,7 +64,6 @@ public class TransactionServiceImpl implements TransactionService {
         return applicationMapper.transactionToTransactionDto(transaction);
     }
 
-    //todo maybe add table where will be save all user income and vitrat sum(think we should not create it but do it using cache)
     @Transactional
     @Override
     public TransactionDto updateTransaction(UUID id, TransactionDto transactionDto) {
@@ -78,7 +76,7 @@ public class TransactionServiceImpl implements TransactionService {
         }
 
         transaction.setTransactionDate(transactionDto.getTransactionDate());
-        transaction.setCategory(new Category(transactionDto.getCategory().getId()));
+        transaction.setCategory(categoryService.getCategory(transactionDto.getCategory().getId()));
         setTransactionAmountInternal(transactionDto.getAmount(), transactionDto.getCurrency(), loggedInUser.getCurrency(), transaction);
 
         transaction.setDescription(transactionDto.getDescription());

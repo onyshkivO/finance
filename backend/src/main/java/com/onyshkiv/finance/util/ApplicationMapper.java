@@ -23,13 +23,32 @@ public abstract class ApplicationMapper {
                 .id(category.getId())
                 .type(category.getType().name())
                 .name(category.getName())
+                .icon(category.getIcon())
                 .mccCodes(category.getCategoryMccs().stream().map(CategoryMcc::getMccCode).collect(Collectors.toSet()))
                 .build();
     }
 
     public abstract Transaction transactionDtoToTransaction(TransactionDto transactionDto);
 
-    public abstract TransactionDto transactionToTransactionDto(Transaction transaction);
+    public TransactionDto transactionToTransactionDto(Transaction transaction) {
+        if (transaction == null) {
+            return null;
+        }
+
+        TransactionDto.TransactionDtoBuilder transactionDto = TransactionDto.builder();
+
+        transactionDto.id(transaction.getId());
+        transactionDto.category(categoryToCategoryDto(transaction.getCategory()));
+        if (transaction.getType() != null) {
+            transactionDto.type(transaction.getType().name());
+        }
+        transactionDto.amount(transaction.getAmount());
+        transactionDto.currency(transaction.getBaseCurrency());
+        transactionDto.description(transaction.getDescription());
+        transactionDto.transactionDate(transaction.getTransactionDate());
+
+        return transactionDto.build();
+    }
 
     public List<MonobankAccount> monobankClientDtoToMonobankAccountList(MonobankClientDto monobankClientDto, UUID userId) {
         return monobankClientDto.getAccounts().stream().map(account -> MonobankAccount.builder()
