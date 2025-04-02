@@ -42,3 +42,17 @@ export async function CreateCategory(form: CreateCategorySchemaType) {
         throw new Error("Internal server error");
     }
 }
+
+
+export async function DeleteCategory(id: string) {
+
+    try {
+        const response = await clientApi.delete(`/category/${id}`, {
+        });
+
+        return response.data;
+    } catch (error) {
+        console.error("Error creating category:", error);
+        throw new Error("Internal server error");
+    }
+}
