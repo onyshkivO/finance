@@ -14,17 +14,25 @@ import { cn } from "@/lib/utils";
 
 interface Props {
   type: TransactionType;
-  onChange: (value:  string) => void;
+  onChange: (value: string) => void;
+  defaultValue?: string;
 }
 
-function CategoryPicker({ type, onChange}: Props) {
+function CategoryPicker({ type, onChange, defaultValue }: Props) {
   const [open, setOpen] = React.useState(false);
-  const [value, setValue] = React.useState("");
+  const [value, setValue] = React.useState(defaultValue || "");
 
   useEffect(() => {
     if (!value) return;
     onChange(value);
   }, [onChange, value]);
+
+  useEffect(() => {
+    if (defaultValue) {
+      setValue(defaultValue);
+    }
+  }, [defaultValue]);
+
   const categoriesQuery = useQuery({
     queryKey: ["categories", type],
     queryFn: () => getUserCategoriesByType(type),

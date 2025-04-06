@@ -8,13 +8,23 @@ import { cn } from "@/lib/utils";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { logoutAction } from "@/data/actions/auth-actions";
+import { Skeleton } from "@/components/ui/skeleton";
 
 function UserIcon() {
-    const { user } = useUser();
+    const { user, isLoading } = useUser();
+
+    if (isLoading) {
+        return (
+            <div className="flex items-center gap-2">
+                <Skeleton className="h-10 w-10 rounded-full" />
+                <Skeleton className="h-4 w-24" />
+            </div>
+        );
+    }
 
     return (
         <div className="flex items-center">
-            {user  ? (
+            {user ? (
                 <DropdownMenu>
                     <DropdownMenuTrigger className="flex items-center gap-2 cursor-pointer">
                         <Avatar>

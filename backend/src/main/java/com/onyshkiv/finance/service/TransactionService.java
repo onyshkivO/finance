@@ -6,6 +6,7 @@ import com.onyshkiv.finance.model.entity.Transaction;
 import com.onyshkiv.finance.model.entity.TransactionType;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -25,6 +26,8 @@ public interface TransactionService {
     void setTransactionAmountInternal(BigDecimal amount, Currency transactionCurrency, Currency userBaseCurrency, Transaction transaction);
 
     List<TransactionDto> getUserTransactions(TransactionType transactionType);
+
+    List<TransactionDto> getUserTransactionsByDateRange(LocalDate from, LocalDate to);
 
     void updateAmountAfterUserBaseCurrencyChange(Currency currencyToConvert);
 }

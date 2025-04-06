@@ -56,3 +56,33 @@ export async function DeleteCategory(id: string) {
         throw new Error("Internal server error");
     }
 }
+
+export async function UpdateCategory(id: string, form: CreateCategorySchemaType) {
+    console.log("form", form);
+    console.log("form.icon", form.icon);
+    console.log("form", form.name);
+    console.log("form.type", form.type);
+    console.log("form.mccCodes", form.mccCodes);
+    const parsedBody = CreateCategorySchema.safeParse(form);
+    console.log("parsedBody", parsedBody);
+    console.log("parsedBody", parsedBody.success);
+    if (!parsedBody.success) {
+        throw new Error(parsedBody.error.message);
+    }
+
+    const { name, icon, type, mccCodes } = parsedBody.data;
+
+    try {
+        const response = await clientApi.put(`/category/${id}`, {
+            name,
+            icon,
+            type: type.toUpperCase(),
+            mccCodes: mccCodes || []
+        });
+
+        return response.data;
+    } catch (error) {
+        console.error("Error updating category:", error);
+        throw new Error("Internal server error");
+    }
+}

@@ -1,59 +1,85 @@
 "use client";
 
-
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DeleteCategory } from "@/data/services/category-service";
 import { Category } from "@/lib/types";
-import { useMutation } from "@tanstack/react-query";
-import React, { ReactNode } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import React from "react";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
+import { DialogClose } from "@/components/ui/dialog";
 
 interface Props {
-    trigger: ReactNode;
     category: Category;
+    open: boolean;
+    setOpen: (open: boolean) => void;
+    successCallback: () => void;
 }
 
-function DeleteCategoryDialog({ category, trigger }: Props) {
-    const categoryIdentifier = `${category.name}-${category.type}`;
-    const deleteMutation = useMutation({
+function DeleteCategoryDialog({ category, open, setOpen, successCallback }: Props) {
+    const queryClient = useQueryClient();
+
+    const { mutate, isPending } = useMutation({
         mutationFn: DeleteCategory,
-        onSuccess: () => {
-            toast.success("Category deleted successfully", {
-                id: categoryIdentifier,
+        onSuccess: async () => {
+            toast.success(`Category ${category.name} deleted successfully`, {
+                id: "delete-category",
+            });
+            await queryClient.invalidateQueries({
+                queryKey: ["categories"],
+            });
+            successCallback();
+            setOpen(false);
+        },
+        onError: () => {
+            toast.error("Something went wrong", {
+                id: "delete-category",
             });
         },
     });
 
+    const onSubmit = () => {
+        toast.loading("Deleting category...", { id: "delete-category" });
+        mutate(category.id);
+    };
+
     return (
-        <AlertDialog>
-            <AlertDialogTrigger asChild>
-                {trigger}
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-                <AlertDialogHeader>
-                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                        This action cannot be undone. This will permanently delete your
-                        category
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction
-                        onClick={() => {
-                            toast.loading("Deleting category...", {
-                                id: categoryIdentifier,
-                            });
-                            deleteMutation.mutate(
-                                category.id
-                            );
-                        }}
+        <Dialog open={open} onOpenChange={setOpen}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Are you sure?</DialogTitle>
+                    <DialogDescription>
+                        This action cannot be undone. This will permanently delete the{" "}
+                        <span className="font-medium">{category.name}</span> category.
+                    </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                    <DialogClose asChild>
+                        <Button
+                            className="cursor-pointer"
+                            type="button"
+                            variant={"secondary"}
+                        >
+                            Cancel
+                        </Button>
+                    </DialogClose>
+                    <Button
+                        onClick={onSubmit}
+                        disabled={isPending}
+                        className="cursor-pointer"
                     >
-                        Continue
-                    </AlertDialogAction>
-                </AlertDialogFooter>
-            </AlertDialogContent>
-        </AlertDialog>
+                        {isPending ? (
+                            <>
+                                Deleting <Loader2 className="animate-spin h-4 w-4 ml-2" />
+                            </>
+                        ) : (
+                            "Delete"
+                        )}
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     );
 }
 

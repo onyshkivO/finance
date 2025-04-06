@@ -35,6 +35,35 @@ export type BackendCategoryStats = {
   amount: number;
 };
 
+export interface Transaction {
+  id: string;
+  category: Category;
+  type: "income" | "expense";
+  amount: number;
+  formatedAmount: string;
+  description?: string | null;
+  currency: Currency;
+  transactionDate: string;
+}
+
+export interface TransactionDtoBackend {
+  id: string; 
+  category: CategoryDtoBackend;
+  type: "INCOME" | "EXPENSE"; 
+  amount: number;
+  description?: string | null;
+  currency: string;
+  transactionDate: string; 
+}
+
+export interface CategoryDtoBackend {
+  id: string; 
+  name: string;
+  type: "INCOME" | "EXPENSE"; 
+  icon?: string;
+  mccCodes?: number[];
+}
+
 export type CategoryStatsType = {
   type: TransactionType;
   category: string;

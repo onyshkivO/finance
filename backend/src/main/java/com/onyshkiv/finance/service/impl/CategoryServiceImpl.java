@@ -104,6 +104,7 @@ public class CategoryServiceImpl implements CategoryService {
         }
 
         category.setName(updateCategoryRequest.getName());
+        category.setIcon(updateCategoryRequest.getIcon());
         Set<CategoryMcc> categoryMccs = getCategoryMccs(newMccCodes, category, userId);
         category.updateMccSet(categoryMccs);
 

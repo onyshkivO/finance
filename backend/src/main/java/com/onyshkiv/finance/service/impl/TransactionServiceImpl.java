@@ -127,6 +127,15 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
+    public List<TransactionDto> getUserTransactionsByDateRange(LocalDate from, LocalDate to) {
+        UUID userId = securityContextHelper.getLoggedInUser().getId();
+        return transactionRepository.findUserTransactionByDateRange(userId, from, to)
+                .stream()
+                .map(applicationMapper::transactionToTransactionDto)
+                .toList();
+    }
+
+    @Override
     public void setTransactionAmountInternal(BigDecimal amount, Currency transactionCurrency, Currency userBaseCurrency, Transaction transaction) {
         transaction.setBaseAmount(amount);
         if (transactionCurrency == null || transactionCurrency.equals(userBaseCurrency)) {
