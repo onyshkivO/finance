@@ -3,20 +3,20 @@
 import { UserData } from "@/lib/types";
 import React, { createContext, useContext, useEffect, useState } from "react";
 
-// Create Context
 const UserContext = createContext<{
     user: UserData | null;
     setUser: (user: UserData | null) => void;
+    isLoading: boolean;
 }>({
     user: null,
     setUser: () => {},
+    isLoading: true,
 });
 
-// Create Provider Component
 export function UserProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<UserData | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
 
-    // Load user data from cookies/localStorage on mount
     useEffect(() => {
         function getCookie(name: string) {
             const match = document.cookie.match(new RegExp("(^| )" + name + "=([^;]+)"));
@@ -32,12 +32,16 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
                 console.error("Failed to parse userData:", error);
             }
         }
+        setIsLoading(false); // done loading
     }, []);
 
-    return <UserContext.Provider value={{ user, setUser }}>{children}</UserContext.Provider>;
+    return (
+        <UserContext.Provider value={{ user, setUser, isLoading }}>
+            {children}
+        </UserContext.Provider>
+    );
 }
 
-// Custom Hook for Using User Context
 export function useUser() {
     return useContext(UserContext);
 }

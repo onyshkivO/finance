@@ -23,16 +23,6 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
                                    @Param("from") LocalDate from,
                                    @Param("to") LocalDate to);
 
-//    @Query("SELECT t.type, t.category, COALESCE(SUM(t.amount),0) as totalAmount " +
-//            "FROM Transaction t " +
-//            "WHERE t.userId = :userId " +
-//            "AND t.transactionDate BETWEEN :from AND :to " +
-//            "GROUP BY t.type, t.category " +
-//            "ORDER BY totalAmount DESC")
-//    List<Object[]> getCategoriesStats(@Param("userId") UUID userId,
-//                                      @Param("from") LocalDate from,
-//                                      @Param("to") LocalDate to);
-
 
     @Query("SELECT t.type, COALESCE(c.name, 'Other') as category_name, c.icon as category_icon, COALESCE(SUM(t.amount), 0) as totalAmount " +
             "FROM Transaction t " +
@@ -62,5 +52,13 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
             "AND EXTRACT(MONTH FROM t.transactionDate) = :month " +
             "GROUP BY day, t.type")
     List<Object[]> sumAmountByMonthGroupedByDayAndType(@Param("year") int year, @Param("month") int month);
+
+    @Query("SELECT t FROM Transaction t " +
+            "WHERE t.userId = :userId " +
+            "AND t.transactionDate BETWEEN :from AND :to " +
+            "ORDER BY t.transactionDate DESC")
+    List<Transaction> findUserTransactionByDateRange(@Param("userId") UUID userId,
+                                                     @Param("from") LocalDate from,
+                                                     @Param("to") LocalDate to);
 
 }

@@ -1,74 +1,76 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { TransactionType, Category } from "@/lib/types";
+import { Category, TransactionType } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import {
     CreateCategorySchema,
     CreateCategorySchemaType,
 } from "@/schema/categories";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CircleOff, Loader2, PlusSquare, X } from "lucide-react";
-import React, { ReactNode, useCallback, useState } from "react";
+import { CircleOff, Loader2, X } from "lucide-react";
+import React, { useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import Picker from "@emoji-mart/react";
 import data from "@emoji-mart/data";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { CreateCategory } from "@/data/services/category-service";
+import { UpdateCategory } from "@/data/services/category-service";
 import { useTheme } from "next-themes";
 
 interface Props {
-    type: TransactionType;
-    successCallback: (category: Category) => void;
-    trigger?: ReactNode;
+    category: Category;
+    open: boolean;
+    setOpen: (open: boolean) => void;
 }
-
-function CreateCategoryDialog({ type, successCallback, trigger }: Props) {
-    const [open, setOpen] = useState(false);
-    const [mccCodes, setMccCodes] = useState<number[]>([]);
+function UpdateCategoryDialog({ category, open, setOpen }: Props) {
+    const [mccCodes, setMccCodes] = useState<number[]>(Array.from(category.mccCodes || []));
     const [mccInput, setMccInput] = useState("");
     const form = useForm<CreateCategorySchemaType>({
         resolver: zodResolver(CreateCategorySchema),
         defaultValues: {
-            type: type,
+          type: category.type.toLowerCase() as TransactionType,
+          name: category.name,
+          icon: category.icon ?? null,
+          mccCodes: Array.from(category.mccCodes || []),
         },
-    });
+      });
 
     const queryClient = useQueryClient();
     const theme = useTheme();
 
     const { mutate, isPending } = useMutation({
-        mutationFn: CreateCategory,
-        onSuccess: async (data: Category) => {
-            form.reset({
-                type,
-                name: "",
-                icon: "",
-                mccCodes: []
+        mutationFn: (values: CreateCategorySchemaType) => {
+            console.log('Updating category with values:', values);
+            console.log('Category ID:', category.id);
+            return UpdateCategory(category.id, values);
+        },
+        onSuccess: async () => {
+            form.reset();
+            toast.success(`Category ${category.name} updated successfully`, {
+                id: "update-category",
             });
-            toast.success(`Category ${data.name} created successfully`, {
-                id: "create-category",
-            });
-            successCallback(data)
             await queryClient.invalidateQueries({
                 queryKey: ["categories"],
             });
-            setOpen((prev) => !prev);
+            setOpen(false);
         },
         onError: () => {
             toast.error("Something went wrong", {
-                id: "create-category",
+                id: "update-category",
             });
         },
     });
 
     const onSubmit = useCallback(
         (values: CreateCategorySchemaType) => {
-            toast.loading("Creating category...", { id: "create-category" });
+            toast.loading("Updating category...", { id: "update-category" });
+            console.log(values);
+            console.log(mccCodes);
+            console.log("values.icon"+values.icon);
             mutate({ ...values, mccCodes });
         },
         [mutate, mccCodes]
@@ -77,7 +79,7 @@ function CreateCategoryDialog({ type, successCallback, trigger }: Props) {
     const [error, setError] = useState<string | null>(null);
 
     const handleAddMccCode = () => {
-        setError(null); // Reset error
+        setError(null);
 
         if (!mccInput.trim()) {
             setError("Please enter at least one MCC code");
@@ -89,27 +91,23 @@ function CreateCategoryDialog({ type, successCallback, trigger }: Props) {
 
         mccInput.split(",").forEach((entry) => {
             const trimmed = entry.trim();
-            if (!trimmed) return; // Skip empty entries
+            if (!trimmed) return;
 
-            // Validate: Must be positive integer
             const num = parseInt(trimmed, 10);
             if (isNaN(num) || num <= 0 || !/^\d+$/.test(trimmed)) {
                 invalidEntries.push(trimmed);
                 return;
             }
 
-            // Check for duplicates (both existing and in current batch)
             if (!mccCodes.includes(num)) {
                 newCodes.push(num);
             }
         });
 
-        // Show errors if any invalid entries
         if (invalidEntries.length > 0) {
             setError(`Invalid MCC codes: ${invalidEntries.join(", ")}. Must be positive integers.`);
         }
 
-        // Add valid codes
         if (newCodes.length > 0) {
             setMccCodes([...mccCodes, ...newCodes]);
             setMccInput("");
@@ -119,33 +117,25 @@ function CreateCategoryDialog({ type, successCallback, trigger }: Props) {
     const handleRemoveMccCode = (code: number) => {
         setMccCodes(mccCodes.filter((mcc) => mcc !== code));
     };
+
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-                {trigger ? trigger : <Button
-                    variant="ghost"
-                    className="flex border-separate items-center justify-start rounded-none border-b px-3 py-3 text-muted-foreground"
-                >
-                    <PlusSquare className="mr-2 h-4 w-4" />
-                    Create new
-                </Button>}
-            </DialogTrigger>
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle>
-                        Create
+                        Update
                         <span
                             className={cn(
                                 "m-1",
-                                type === "income" ? "text-emerald-500" : "text-red-500"
+                                category.type === "INCOME" ? "text-emerald-500" : "text-red-500"
                             )}
                         >
-                            {type}
+                            {category.type.toLowerCase()}
                         </span>
                         category
                     </DialogTitle>
                     <DialogDescription>
-                        Categories are used to group transactions
+                        Update your category details
                     </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
@@ -157,7 +147,7 @@ function CreateCategoryDialog({ type, successCallback, trigger }: Props) {
                                 <FormItem>
                                     <FormLabel>Name</FormLabel>
                                     <FormControl>
-                                        <Input defaultValue={""} {...field} />
+                                        <Input {...field} />
                                     </FormControl>
                                     <FormDescription>
                                         Category name (required)
@@ -234,12 +224,10 @@ function CreateCategoryDialog({ type, successCallback, trigger }: Props) {
                                 </Button>
                             </div>
 
-                            {/* Error message */}
                             {error && (
                                 <p className="mt-1 text-sm text-destructive">{error}</p>
                             )}
 
-                            {/* MCC Tags (with scroll) */}
                             {mccCodes.length > 0 && (
                                 <div className="mt-2 max-h-[200px] overflow-y-auto">
                                     <div className="flex flex-wrap gap-2">
@@ -283,10 +271,10 @@ function CreateCategoryDialog({ type, successCallback, trigger }: Props) {
                     >
                         {isPending ? (
                             <>
-                                Creating <Loader2 className="animate-spin h-4 w-4 ml-2" />
+                                Updating <Loader2 className="animate-spin h-4 w-4 ml-2" />
                             </>
                         ) : (
-                            "Create"
+                            "Update"
                         )}
                     </Button>
                 </DialogFooter>
@@ -295,4 +283,4 @@ function CreateCategoryDialog({ type, successCallback, trigger }: Props) {
     );
 }
 
-export default CreateCategoryDialog;
+export default UpdateCategoryDialog; 
