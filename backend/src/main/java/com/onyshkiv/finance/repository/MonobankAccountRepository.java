@@ -15,8 +15,8 @@ import java.util.UUID;
 public interface MonobankAccountRepository extends JpaRepository<MonobankAccount, UUID> {
     @Modifying
     @Query(value = """
-                INSERT INTO monobank_account (id, user_id, client_id, name, account_id, send_id, iban, currency_code, type, created_at, updated_at)
-                VALUES (:#{#account.id}, :#{#account.userId}, :#{#account.clientId}, :#{#account.name}, :#{#account.accountId},\s
+                INSERT INTO monobank_account (id, user_id, client_id, cashbox_id, name, account_id, send_id, iban, currency_code, type, created_at, updated_at)
+                VALUES (:#{#account.id}, :#{#account.userId}, :#{#account.clientId}, :#{#account.cashbox.id}, :#{#account.name}, :#{#account.accountId},\s
                         :#{#account.sendId}, :#{#account.iban}, :#{#account.currencyCode}, CAST(:#{#account.type.name()} AS monobank_account_type_enum),\s
                         CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
                 ON CONFLICT ON CONSTRAINT uk_monobank_account_user_account

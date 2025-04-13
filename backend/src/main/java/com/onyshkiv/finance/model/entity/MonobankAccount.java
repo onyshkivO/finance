@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.JdbcType;
 import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 
+import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
@@ -48,6 +49,10 @@ public class MonobankAccount {
     @JdbcType(PostgreSQLEnumJdbcType.class)
     private MonobankAccountType type;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cashbox_id")
+    private Cashbox cashbox;
+
     @Column(name = "monitor", nullable = false)
     private Boolean monitor;
 
@@ -56,6 +61,10 @@ public class MonobankAccount {
 
     @Column(name = "updated_at")
     private OffsetDateTime updatedAt;
+
+    @Transient
+    private BigDecimal balance;
+
 
     @PrePersist
     protected void onCreate() {

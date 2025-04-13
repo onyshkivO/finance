@@ -11,6 +11,7 @@ import { useForm } from "react-hook-form";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import CategoryPicker from "./CategoryPicker";
+import CashboxPicker from "./CashboxPicker";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { CalendarIcon, Loader2 } from "lucide-react";
@@ -47,6 +48,13 @@ function CreateTransactionDialog({ trigger, type, user }: Props) {
         [form]
     );
 
+    const handleCashboxChange = useCallback(
+        (value: string) => {
+            form.setValue("cashbox", value);
+        },
+        [form]
+    );
+
     const queryClient = useQueryClient();
 
     const { mutate, isPending } = useMutation({
@@ -63,6 +71,7 @@ function CreateTransactionDialog({ trigger, type, user }: Props) {
                 amount: 0,
                 date: new Date(),
                 category: undefined,
+                cashbox: undefined,
                 currency: user?.currency.code, // Reset to user's default currency
             });
 
@@ -190,6 +199,24 @@ function CreateTransactionDialog({ trigger, type, user }: Props) {
                                     </FormItem>
                                 )}
                             />
+                            <FormField
+                                control={form.control}
+                                name="cashbox"
+                                /* eslint-disable @typescript-eslint/no-unused-vars */
+                                render={({ field }) => (
+                                    <FormItem className="flex flex-col">
+                                        <FormLabel>Cashbox</FormLabel>
+                                        <FormControl>
+                                            <CashboxPicker onChange={handleCashboxChange} user={user as UserData} />
+                                        </FormControl>
+                                        <FormDescription>
+                                            Select a cashbox for this transaction
+                                        </FormDescription>
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+                        <div className="flex items-center justify-between gap-2">
                             <FormField
                                 control={form.control}
                                 name="date"

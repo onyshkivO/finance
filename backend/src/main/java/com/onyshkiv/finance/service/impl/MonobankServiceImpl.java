@@ -8,14 +8,30 @@ import com.onyshkiv.finance.model.dto.monobank.MonobankAccountDto;
 import com.onyshkiv.finance.model.dto.monobank.MonobankClientDto;
 import com.onyshkiv.finance.model.dto.monobank.StatementItemDetailsDto;
 import com.onyshkiv.finance.model.dto.monobank.StatementItemDto;
-import com.onyshkiv.finance.model.entity.*;
-import com.onyshkiv.finance.repository.*;
+import com.onyshkiv.finance.model.entity.Cashbox;
+import com.onyshkiv.finance.model.entity.Category;
+import com.onyshkiv.finance.model.entity.Currency;
+import com.onyshkiv.finance.model.entity.MonobankAccount;
+import com.onyshkiv.finance.model.entity.MonobankAuth;
+import com.onyshkiv.finance.model.entity.Transaction;
+import com.onyshkiv.finance.model.entity.TransactionType;
+import com.onyshkiv.finance.model.entity.User;
+import com.onyshkiv.finance.repository.CashboxRepository;
+import com.onyshkiv.finance.repository.CategoryMccRepository;
+import com.onyshkiv.finance.repository.MonobankAccountRepository;
+import com.onyshkiv.finance.repository.MonobankAuthRepository;
+import com.onyshkiv.finance.repository.TransactionRepository;
+import com.onyshkiv.finance.repository.UserRepository;
 import com.onyshkiv.finance.security.SecurityContextHelper;
 import com.onyshkiv.finance.service.MonobankService;
 import com.onyshkiv.finance.service.TransactionService;
 import com.onyshkiv.finance.util.ApplicationMapper;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.*;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.PEMParser;
@@ -35,10 +51,13 @@ import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.Signature;
 import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
+import static com.onyshkiv.finance.model.entity.TransactionType.EXPENSE;
 
 @Service
 @Slf4j
@@ -67,6 +86,7 @@ public class MonobankServiceImpl implements MonobankService {
     private final TransactionRepository transactionRepository;
     private final CategoryMccRepository categoryMccRepository;
     private final TransactionService transactionService;
+    private final CashboxRepository cashboxRepository;
 
 
     @Autowired
@@ -79,7 +99,7 @@ public class MonobankServiceImpl implements MonobankService {
                                TransactionRepository transactionRepository,
                                CategoryMccRepository categoryMccRepository,
                                UserRepository userRepository,
-                               TransactionService transactionService) {
+                               TransactionService transactionService, CashboxRepository cashboxRepository) {
         this.objectMapper = objectMapper;
         this.monobankAuthRepository = monobankAuthRepository;
         this.httpClient = httpClient;
@@ -90,6 +110,7 @@ public class MonobankServiceImpl implements MonobankService {
         this.categoryMccRepository = categoryMccRepository;
         this.userRepository = userRepository;
         this.transactionService = transactionService;
+        this.cashboxRepository = cashboxRepository;
     }
 
     @Transactional
@@ -160,7 +181,7 @@ public class MonobankServiceImpl implements MonobankService {
         UUID userId = monobankAccount.getUserId();
         StatementItemDetailsDto transactionDetails = statementItemDto.getStatementItem();
 
-        TransactionType type = transactionDetails.getAmount().compareTo(BigInteger.ZERO) > 0 ? TransactionType.INCOME : TransactionType.EXPENSE;
+        TransactionType type = transactionDetails.getAmount().compareTo(BigInteger.ZERO) > 0 ? TransactionType.INCOME : EXPENSE;
         BigDecimal amount = new BigDecimal(transactionDetails.getAmount()).divide(BigDecimal.valueOf(100)).abs();
         Optional<UUID> categoryIdOptional = categoryMccRepository.getCategoryIdByMccAndUserIdAndType(transactionDetails.getMcc(), userId, type);
         Currency transactionCurrency = convertCurrencyCodeToCurrency(transactionDetails.getCurrencyCode());
@@ -175,6 +196,9 @@ public class MonobankServiceImpl implements MonobankService {
                 .transactionDate(transactionDetails.getTransactionDate())
                 .build();
         transactionService.setTransactionAmountInternal(amount, transactionCurrency, user.getCurrency(), transaction);
+        Cashbox cashbox = monobankAccount.getCashbox();
+        BigDecimal cashboxBalance = cashbox.getBalance();
+        cashbox.setBalance(EXPENSE.equals(transaction.getType()) ? cashboxBalance.subtract(transaction.getBaseAmount()) : cashboxBalance.add(transaction.getBaseAmount()));
         transactionRepository.save(transaction);
 
     }
@@ -195,6 +219,7 @@ public class MonobankServiceImpl implements MonobankService {
         MonobankAccount monobankAccount = monobankAccountRepository.findByAccountId(accountId)
                 .orElseThrow(() -> new NotFoundException("Monobank account not found for monobank account id: " + accountId));
         monobankAccount.setMonitor(true);
+        monobankAccount.getCashbox().setDeletedAt(null);
     }
 
     @Override
@@ -219,7 +244,20 @@ public class MonobankServiceImpl implements MonobankService {
             String responseJson = getClientInfo(requestId);
             MonobankClientDto monobankClientDto = objectMapper.readValue(responseJson, MonobankClientDto.class);
             List<MonobankAccount> monobankAccounts = applicationMapper.monobankClientDtoToMonobankAccountList(monobankClientDto, userId);
-            monobankAccounts.forEach(monobankAccountRepository::upsertMonobankAccount);
+
+            monobankAccounts.forEach(account -> {
+                Currency accountCurrency = convertCurrencyCodeToCurrency(account.getCurrencyCode());
+                Cashbox cashbox = Cashbox.builder()
+                        .userId(userId)
+                        .currency(accountCurrency)
+                        .name(account.getType().name().toLowerCase() + " " + accountCurrency.name() + " monobank card")
+                        .balance(account.getBalance())
+                        .deletedAt(OffsetDateTime.now())
+                        .build();
+                cashboxRepository.save(cashbox);
+                account.setCashbox(cashbox);
+                monobankAccountRepository.upsertMonobankAccount(account);
+            });
         } catch (IOException | ExternalServiceException e) {
             throw new ExternalServiceException("Error during request to Monobank api: " + e.getMessage(), e);
         }

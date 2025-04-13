@@ -22,7 +22,7 @@ export async function CreateTransaction(form: CreateTransactionSchemaType) {
             amount: amount,
             description: description || null,
             currency: currency,
-            transactionDate: format(date, 'dd-MM-yyyy') // Format date to match DTO pattern
+            transactionDate: format(date, 'dd-MM-yyyy')
         });
 
         return response.data;

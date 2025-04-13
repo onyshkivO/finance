@@ -4,10 +4,24 @@ import com.onyshkiv.finance.model.dto.CategoryDto;
 import com.onyshkiv.finance.model.dto.TransactionDto;
 import com.onyshkiv.finance.model.dto.monobank.MonobankAccountDto;
 import com.onyshkiv.finance.model.dto.monobank.MonobankClientDto;
+import com.onyshkiv.finance.model.dto.request.CashboxRequest;
 import com.onyshkiv.finance.model.dto.request.SignUpRequest;
-import com.onyshkiv.finance.model.entity.*;
+import com.onyshkiv.finance.model.dto.response.CashboxResponse;
+import com.onyshkiv.finance.model.dto.response.ExtendedCashboxResponse;
+import com.onyshkiv.finance.model.dto.response.TransferResponse;
+import com.onyshkiv.finance.model.entity.Cashbox;
+import com.onyshkiv.finance.model.entity.Category;
+import com.onyshkiv.finance.model.entity.CategoryMcc;
+import com.onyshkiv.finance.model.entity.Currency;
+import com.onyshkiv.finance.model.entity.MonobankAccount;
+import com.onyshkiv.finance.model.entity.MonobankAccountType;
+import com.onyshkiv.finance.model.entity.Transaction;
+import com.onyshkiv.finance.model.entity.Transfer;
+import com.onyshkiv.finance.model.entity.User;
 import org.mapstruct.Mapper;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -46,6 +60,7 @@ public abstract class ApplicationMapper {
         transactionDto.currency(transaction.getBaseCurrency());
         transactionDto.description(transaction.getDescription());
         transactionDto.transactionDate(transaction.getTransactionDate());
+        transactionDto.cashboxId(transaction.getCashbox().getId());
 
         return transactionDto.build();
     }
@@ -61,6 +76,7 @@ public abstract class ApplicationMapper {
                 .iban(account.getIban())
                 .currencyCode(account.getCurrencyCode())
                 .type(MonobankAccountType.fromString(account.getType()))
+                .balance(account.getBalance().divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP))
                 .build()).toList();
     }
 
@@ -71,6 +87,50 @@ public abstract class ApplicationMapper {
                 .type(monobankAccount.getType().name())
                 .currencyCode(monobankAccount.getCurrencyCode())
                 .iban(monobankAccount.getIban())
+                .cashboxId(monobankAccount.getCashbox().getId())
+                .build();
+    }
+
+    public Cashbox cashboxRequestToCashbox(CashboxRequest cashboxRequest) {
+        return Cashbox.builder()
+                .id(UUID.randomUUID())
+                .name(cashboxRequest.getName())
+                .currency(Currency.fromCode(cashboxRequest.getCurrency().toUpperCase()))
+                .balance(BigDecimal.ZERO)
+                .build();
+    }
+
+    public CashboxResponse cashboxToCashboxResponse(Cashbox cashbox) {
+        return CashboxResponse.builder()
+                .id(cashbox.getId())
+                .userId(cashbox.getUserId())
+                .name(cashbox.getName())
+                .balance(cashbox.getBalance())
+                .currency(cashbox.getCurrency().name())
+                .build();
+    }
+
+    public TransferResponse transferToTransferResponse(Transfer transfer) {
+        return TransferResponse.builder()
+                .id(transfer.getId())
+                .amountFrom(transfer.getFromAmount())
+                .amountTo(transfer.getToAmount())
+                .cashboxFrom(cashboxToCashboxResponse(transfer.getFromCashbox()))
+                .cashboxTo(cashboxToCashboxResponse(transfer.getToCashbox()))
+                .date(transfer.getDate())
+                .description(transfer.getDescription())
+                .build();
+    }
+
+    public ExtendedCashboxResponse cashboxToExtendedCashboxResponse(Cashbox cashbox) {
+        return ExtendedCashboxResponse.builder()
+                .id(cashbox.getId())
+                .userId(cashbox.getUserId())
+                .name(cashbox.getName())
+                .balance(cashbox.getBalance())
+                .currency(cashbox.getCurrency().name())
+                .transactions(cashbox.getTransactions().stream().map(this::transactionToTransactionDto).toList())
+                .transfers(cashbox.getTransfers().stream().map(this::transferToTransferResponse).toList())
                 .build();
     }
 }

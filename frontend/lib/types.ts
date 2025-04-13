@@ -167,3 +167,11 @@ export const CURRENCIES = [
   { code: "VND", name: "Vietnamese Dong", symbol: "₫", locale: "vi-VN" },
   { code: "ZAR", name: "South African Rand", symbol: "R", locale: "en-ZA" },
 ];
+
+export type Cashbox = {
+    id: string;
+    userId: string;
+    name: string;
+    currency: string;
+    balance: number;
+};

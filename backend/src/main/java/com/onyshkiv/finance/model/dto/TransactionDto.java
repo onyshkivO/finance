@@ -38,6 +38,8 @@ public class TransactionDto {
 
     private Currency currency;
 
+    private UUID cashboxId;
+
     @NotNull(message = "invalid transaction date")
     @DateTimeFormat(pattern = "dd-MM-yyyy")
     @JsonFormat(pattern = "dd-MM-yyyy")

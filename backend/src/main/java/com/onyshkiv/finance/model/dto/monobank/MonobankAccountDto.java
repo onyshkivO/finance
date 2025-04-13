@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.UUID;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
@@ -14,6 +16,7 @@ import java.util.List;
 public class MonobankAccountDto {
     private String id;
     private String sendId;
+    private UUID cashboxId;
     private BigDecimal balance;
     private BigDecimal creditLimit;
     private String type;

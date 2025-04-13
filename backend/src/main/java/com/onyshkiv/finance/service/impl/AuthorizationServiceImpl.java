@@ -10,6 +10,7 @@ import com.onyshkiv.finance.model.entity.User;
 import com.onyshkiv.finance.repository.UserRepository;
 import com.onyshkiv.finance.security.JwtUtil;
 import com.onyshkiv.finance.service.AuthorizationService;
+import com.onyshkiv.finance.service.CashboxService;
 import com.onyshkiv.finance.util.ApplicationMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,14 +34,16 @@ public class AuthorizationServiceImpl implements AuthorizationService {
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
     private final ApplicationMapper applicationMapper;
+    private final CashboxService cashboxService;
 
     @Autowired
-    public AuthorizationServiceImpl(AuthenticationProvider authenticationProvider, JwtUtil jwtUtil, PasswordEncoder passwordEncoder, UserRepository userRepository, ApplicationMapper applicationMapper) {
+    public AuthorizationServiceImpl(AuthenticationProvider authenticationProvider, JwtUtil jwtUtil, PasswordEncoder passwordEncoder, UserRepository userRepository, ApplicationMapper applicationMapper, CashboxService cashboxService) {
         this.authenticationProvider = authenticationProvider;
         this.jwtUtil = jwtUtil;
         this.passwordEncoder = passwordEncoder;
         this.userRepository = userRepository;
         this.applicationMapper = applicationMapper;
+        this.cashboxService = cashboxService;
     }
 
     @Override
@@ -78,6 +81,8 @@ public class AuthorizationServiceImpl implements AuthorizationService {
         user.setCurrency(Currency.UAH);//todo add currency to dto(optional)
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         User savedUser = userRepository.save(user);
+        cashboxService.createCashCashbox(savedUser.getId());
+
         String jwt = jwtUtil.generateToken(user.getLogin());
         log.info("User signed up successfully: {}", savedUser.getLogin());
         return new AuthorizationResponse(jwt, savedUser.getLogin(), savedUser.getId(), savedUser.getCurrency());
