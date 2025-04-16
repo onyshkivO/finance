@@ -62,7 +62,7 @@ public class TransactionServiceImpl implements TransactionService {
 
         transaction.setId(UUID.randomUUID());
         transaction.setCategory(categoryService.getCategory(transactionDto.getCategory().getId()));
-        transaction.setCashbox(cashboxService.getCashbox(transactionDto.getCashboxId()));
+        transaction.setCashbox(cashboxService.getCashbox(transactionDto.getCashbox().getId()));
         transaction.setUserId(loggedInUser.getId());
 
         setTransactionAmountInternal(transactionDto.getAmount(), transactionDto.getCurrency(), loggedInUser.getCurrency(), transaction);

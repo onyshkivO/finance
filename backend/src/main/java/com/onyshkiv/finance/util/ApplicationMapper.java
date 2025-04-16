@@ -60,7 +60,7 @@ public abstract class ApplicationMapper {
         transactionDto.currency(transaction.getBaseCurrency());
         transactionDto.description(transaction.getDescription());
         transactionDto.transactionDate(transaction.getTransactionDate());
-        transactionDto.cashboxId(transaction.getCashbox().getId());
+        transactionDto.cashbox(cashboxToCashboxResponse(transaction.getCashbox()));
 
         return transactionDto.build();
     }

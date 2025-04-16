@@ -1,10 +1,7 @@
 package com.onyshkiv.finance.service.impl;
 
 import com.onyshkiv.finance.exception.UnsupportedException;
-import com.onyshkiv.finance.model.dto.response.BalanceStatsResponse;
-import com.onyshkiv.finance.model.dto.response.CategoryStatsResponse;
-import com.onyshkiv.finance.model.dto.response.MonthlyTransactionSummary;
-import com.onyshkiv.finance.model.dto.response.YearlyTransactionSummary;
+import com.onyshkiv.finance.model.dto.response.*;
 import com.onyshkiv.finance.model.entity.Category;
 import com.onyshkiv.finance.model.entity.TransactionType;
 import com.onyshkiv.finance.repository.TransactionRepository;
@@ -77,6 +74,21 @@ public class StatsServiceImpl implements StatsService {
                         (String) result[1],
                         (String) result[2],
                         ((BigDecimal) result[3]).doubleValue()
+                ))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<CashboxStatsResponse> getCashboxStats(LocalDate from, LocalDate to) {
+        validateDateRange(from, to);
+        UUID userId = securityContextHelper.getLoggedInUser().getId();
+        List<Object[]> results = transactionRepository.getCashboxStats(userId, from, to);
+
+        return results.stream()
+                .map(result -> new CashboxStatsResponse(
+                        (TransactionType) result[0],
+                        (String) result[1],
+                        ((BigDecimal) result[2]).doubleValue()
                 ))
                 .collect(Collectors.toList());
     }

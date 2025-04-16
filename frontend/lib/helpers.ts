@@ -1,4 +1,4 @@
-import { BackendCategoryStats, Category, CategoryDtoBackend, CategoryStatsType, CURRENCIES, Transaction, TransactionDtoBackend } from "./types";
+import { BackendCashboxStats, BackendCategoryStats, CashboxStatsType, Category, CategoryDtoBackend, CategoryStatsType, CURRENCIES, Transaction, TransactionDtoBackend } from "./types";
 
 export function GetFormatterForCurrency(currency: string) {
 
@@ -25,6 +25,13 @@ export function normalizeCategoryStats(data: BackendCategoryStats[]): CategorySt
         type: item.type.toLowerCase() as 'income' | 'expense'
     }));
   }
+
+export function normalizeCashboxStats(data: BackendCashboxStats[]): CashboxStatsType[] {
+    return data.map(item => ({
+        ...item,
+        type: item.type.toLowerCase() as 'income' | 'expense'
+    }));
+}
 
 export function normalizeTransaction(tx: TransactionDtoBackend,currency : string): Transaction {
     const normalizedCurrency = CURRENCIES.find((c) => c.code === tx.currency);

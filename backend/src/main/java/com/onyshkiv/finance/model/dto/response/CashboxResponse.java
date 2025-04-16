@@ -1,8 +1,5 @@
 package com.onyshkiv.finance.model.dto.response;
 
-import com.onyshkiv.finance.model.entity.Currency;
-import com.onyshkiv.finance.util.ValidEnum;
-import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

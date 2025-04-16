@@ -1,9 +1,6 @@
 package com.onyshkiv.finance.controller;
 
-import com.onyshkiv.finance.model.dto.response.BalanceStatsResponse;
-import com.onyshkiv.finance.model.dto.response.CategoryStatsResponse;
-import com.onyshkiv.finance.model.dto.response.MonthlyTransactionSummary;
-import com.onyshkiv.finance.model.dto.response.YearlyTransactionSummary;
+import com.onyshkiv.finance.model.dto.response.*;
 import com.onyshkiv.finance.service.StatsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -41,6 +38,14 @@ public class StatsController {
             @RequestParam("to") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
 
         List<CategoryStatsResponse> response = statsService.getCategoryStats(from, to);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/cashbox")
+    public ResponseEntity<List<CashboxStatsResponse>> getCashboxStats(
+            @RequestParam("from") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam("to") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+        List<CashboxStatsResponse> response = statsService.getCashboxStats(from, to);
         return ResponseEntity.ok(response);
     }
 
