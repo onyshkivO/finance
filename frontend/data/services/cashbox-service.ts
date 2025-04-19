@@ -1,6 +1,6 @@
 import clientApi from "@/data/services/client-api";
 import { Cashbox } from "@/lib/types";
-import { CreateCashboxSchema, CreateCashboxSchemaType } from "@/schema/cashbox";
+import { CreateCashboxSchema, CreateCashboxSchemaType, CreateTransferSchema, CreateTransferSchemaType } from "@/schema/cashbox";
 
 import { format } from "date-fns";
 
@@ -36,6 +36,32 @@ export async function fetchUserCashBoxes(): Promise<Cashbox[]> {
       throw new Error("Failed to fetch cashboxes");
     }
   }
+
+
+export async function CreateTransfer(form: CreateTransferSchemaType) {
+    console.log("form", form);
+    const parsedBody = CreateTransferSchema.safeParse(form);
+    if (!parsedBody.success) {
+        throw new Error(parsedBody.error.message);
+    }
+
+    const { amount, date, description, cashboxFrom, cashboxTo} = parsedBody.data;
+    
+    try {
+        const response = await clientApi.put("/cashbox/transfer", {
+            amount: amount,
+            description: description || null,
+            date: format(date, 'dd-MM-yyyy'),
+            cashboxFromId: cashboxFrom,
+            cashboxToId: cashboxTo
+        });
+
+        return response.data;
+    } catch (error) {
+        console.error("Error creating екфтіфсешщт:", error);
+        throw error;
+    }
+}
 
 //   export async function DeleteTransaction(id: string) {
 

@@ -83,7 +83,7 @@ public class CashboxServiceImpl implements CashboxService {
         }
         BigDecimal toAmount = transferAmount(fromAmount, cashboxFrom.getCurrency(), cashboxTo.getCurrency(), transferRequest.getDate());
         cashboxFrom.setBalance(cashboxFrom.getBalance().subtract(fromAmount));
-        cashboxTo.setBalance(toAmount);
+        cashboxTo.setBalance(cashboxTo.getBalance().add(toAmount));
         Transfer transfer = Transfer.builder()
                 .id(UUID.randomUUID())
                 .fromCashbox(cashboxFrom)
@@ -136,7 +136,7 @@ public class CashboxServiceImpl implements CashboxService {
     }
 
     private BigDecimal transferAmount(BigDecimal amount, Currency currencyFrom, Currency currencyTo, LocalDate transferDate) {
-        if (currencyFrom.equals(currencyFrom)) {
+        if (currencyFrom.equals(currencyTo)) {
             return amount;
         } else {
             return currencyService.convert(

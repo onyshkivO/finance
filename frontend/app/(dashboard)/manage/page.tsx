@@ -17,6 +17,7 @@ import { useUser } from "@/context/UserContext";
 import { redirect } from "next/navigation";
 import Cookies from "js-cookie";
 import UpdateCategoryDialog from "../_components/UpdateCategoryDialog";
+import CashboxOverviewCard from "../_components/CashboxOverviewCard";
 
 function Page() {
     const { user, isLoading } = useUser();
@@ -63,17 +64,31 @@ function Page() {
             </div>
             {/* END HEADER */}
             <div className="container mx-auto flex flex-col gap-4 p-4">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Currency</CardTitle>
-                        <CardDescription>
-                            Set your default currency for transactions
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <CurrencyComboBox baseCurrency = {user.currency} />
-                    </CardContent>
-                </Card>
+                <div className="flex flex-col md:flex-row gap-4">
+                    <Card className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm flex-1">
+                        <CardHeader>
+                            <CardTitle>Currency</CardTitle>
+                            <CardDescription>
+                                Set your default currency for transactions
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <CurrencyComboBox baseCurrency={user.currency} />
+                        </CardContent>
+                    </Card>
+                    <CashboxOverviewCard user={user} />
+                    {/* <Card className="flex-1">
+                        <CardHeader>
+                            <CardTitle>Cashboxes</CardTitle>
+                            <CardDescription>
+                                Manage your cashboxes and their balances
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <CashboxOverviewCard />
+                        </CardContent>
+                    </Card> */}
+                </div>
                 <CategoryList type="income" />
                 <CategoryList type="expense" />
             </div>
