@@ -15,8 +15,8 @@ const config = {
 const schemaRegister = z.object({
     login: z
         .string()
-        .min(4, { message: "User login should be between 4 and 20 symbols" })
-        .max(20, { message: "User login should be between 4 and 20 symbols" })
+        .min(4, { message: "User login should be between 5 and 20 symbols" })
+        .max(20, { message: "User login should be between 5 and 20 symbols" })
         .regex(/^(?=.{4,20}$)(?![_.])(?!.*[_.]{2})[a-zA-Z0-9._]+(?<![_.])$/, {
             message: "Bad user login",
         }),

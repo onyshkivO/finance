@@ -44,6 +44,7 @@ export interface Transaction {
   description?: string | null;
   currency: Currency;
   transactionDate: string;
+  cashbox: Cashbox;
 }
 
 export interface TransactionDtoBackend {
@@ -54,6 +55,7 @@ export interface TransactionDtoBackend {
   description?: string | null;
   currency: string;
   transactionDate: string; 
+  cashbox: Cashbox;
 }
 
 export interface CategoryDtoBackend {
@@ -71,11 +73,31 @@ export type CategoryStatsType = {
   amount: number;
 };
 
+export type BackendCashboxStats = {
+  type: 'INCOME' | 'EXPENSE';
+  cashbox: string;
+  amount: number;
+};
+
+export type CashboxStatsType = {
+  type: TransactionType;
+  cashbox: string;
+  amount: number;
+};
+
 export type HistoryStatsType = {
   expense: number;
   income: number;
   year: number;
   month: number;
+};
+
+export type Cashbox = {
+  id: string;
+  userId: string;
+  name: string;
+  currency: string;
+  balance: number;
 };
 
 export const CURRENCIES = [
@@ -167,3 +189,4 @@ export const CURRENCIES = [
   { code: "VND", name: "Vietnamese Dong", symbol: "₫", locale: "vi-VN" },
   { code: "ZAR", name: "South African Rand", symbol: "R", locale: "en-ZA" },
 ];
+

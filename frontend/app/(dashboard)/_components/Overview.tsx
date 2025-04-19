@@ -8,7 +8,7 @@ import StatsCards from './StatsCards';
 import { Currency } from '@/lib/types';
 import { MAX_DATE_RANGE_DAYS } from '@/lib/constants';
 import CategoryStats from './CategoryStats';
-
+import CashboxStats from './CashboxStats';
 function Overview({ userCurrency }: { userCurrency: Currency }) {
     const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>({
         from: startOfMonth(new Date()),
@@ -47,6 +47,11 @@ function Overview({ userCurrency }: { userCurrency: Currency }) {
                     to={dateRange.to} />
 
                 <CategoryStats
+                    userCurrency={userCurrency}
+                    from={dateRange.from}
+                    to={dateRange.to} />
+                    
+                <CashboxStats
                     userCurrency={userCurrency}
                     from={dateRange.from}
                     to={dateRange.to} />

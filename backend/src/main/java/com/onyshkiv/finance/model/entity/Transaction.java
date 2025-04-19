@@ -35,7 +35,7 @@ public class Transaction {
     private UUID userId;
 
     @ManyToOne
-    @JoinColumn(name = "category_id", nullable = false)
+    @JoinColumn(name = "category_id")
     private Category category;
 
     @Enumerated
@@ -65,6 +65,10 @@ public class Transaction {
 
     @Column(name = "updated_at")
     private OffsetDateTime updatedAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cashbox_id", foreignKey = @ForeignKey(name = "fk_transaction_cashbox"))
+    private Cashbox cashbox;
 
     @PrePersist
     protected void onCreate() {

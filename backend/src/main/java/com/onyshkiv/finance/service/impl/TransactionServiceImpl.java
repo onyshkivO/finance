@@ -3,12 +3,14 @@ package com.onyshkiv.finance.service.impl;
 import com.onyshkiv.finance.exception.NotFoundException;
 import com.onyshkiv.finance.exception.UnsupportedException;
 import com.onyshkiv.finance.model.dto.TransactionDto;
+import com.onyshkiv.finance.model.entity.Cashbox;
 import com.onyshkiv.finance.model.entity.Currency;
 import com.onyshkiv.finance.model.entity.Transaction;
 import com.onyshkiv.finance.model.entity.TransactionType;
 import com.onyshkiv.finance.repository.TransactionRepository;
 import com.onyshkiv.finance.security.CustomUserDetails;
 import com.onyshkiv.finance.security.SecurityContextHelper;
+import com.onyshkiv.finance.service.CashboxService;
 import com.onyshkiv.finance.service.CategoryService;
 import com.onyshkiv.finance.service.CurrencyService;
 import com.onyshkiv.finance.service.TransactionService;
@@ -20,10 +22,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
+import static com.onyshkiv.finance.model.entity.TransactionType.EXPENSE;
 
 @Service
 @Slf4j
@@ -34,14 +37,16 @@ public class TransactionServiceImpl implements TransactionService {
     private final ApplicationMapper applicationMapper;
     private final CategoryService categoryService;
     private final CurrencyService currencyService;
+    private final CashboxService cashboxService;
 
     @Autowired
-    public TransactionServiceImpl(TransactionRepository transactionRepository, SecurityContextHelper securityContextHelper, ApplicationMapper applicationMapper, CategoryService categoryService, CurrencyService currencyService) {
+    public TransactionServiceImpl(TransactionRepository transactionRepository, SecurityContextHelper securityContextHelper, ApplicationMapper applicationMapper, CategoryService categoryService, CurrencyService currencyService, CashboxService cashboxService) {
         this.transactionRepository = transactionRepository;
         this.securityContextHelper = securityContextHelper;
         this.applicationMapper = applicationMapper;
         this.categoryService = categoryService;
         this.currencyService = currencyService;
+        this.cashboxService = cashboxService;
     }
 
     @Transactional
@@ -54,12 +59,16 @@ public class TransactionServiceImpl implements TransactionService {
             throw new UnsupportedException(String.format("category type differ with type %s",
                     transaction.getType()));
         }
+
         transaction.setId(UUID.randomUUID());
         transaction.setCategory(categoryService.getCategory(transactionDto.getCategory().getId()));
+        transaction.setCashbox(cashboxService.getCashbox(transactionDto.getCashbox().getId()));
         transaction.setUserId(loggedInUser.getId());
 
         setTransactionAmountInternal(transactionDto.getAmount(), transactionDto.getCurrency(), loggedInUser.getCurrency(), transaction);
         Transaction savedTransaction = transactionRepository.save(transaction);
+
+        applyTransactionToCashboxBalance(savedTransaction, loggedInUser.getCurrency());
         log.info("TransactionService save : transaction successfully saved : {}", savedTransaction);
         return applicationMapper.transactionToTransactionDto(transaction);
     }
@@ -77,18 +86,63 @@ public class TransactionServiceImpl implements TransactionService {
 
         transaction.setTransactionDate(transactionDto.getTransactionDate());
         transaction.setCategory(categoryService.getCategory(transactionDto.getCategory().getId()));
-        setTransactionAmountInternal(transactionDto.getAmount(), transactionDto.getCurrency(), loggedInUser.getCurrency(), transaction);
+        if (!transaction.getAmount().equals(transactionDto.getAmount())) {
+            rollbackTransactionFromCashboxBalance(transaction, loggedInUser.getCurrency());
+            setTransactionAmountInternal(transactionDto.getAmount(), transactionDto.getCurrency(), loggedInUser.getCurrency(), transaction);
+            applyTransactionToCashboxBalance(transaction, loggedInUser.getCurrency());
+        }
 
         transaction.setDescription(transactionDto.getDescription());
 
         return applicationMapper.transactionToTransactionDto(transaction);
     }
 
+    private void applyTransactionToCashboxBalance(Transaction transaction, Currency userCurrency) {
+        applyTransactionToCashbox(transaction, userCurrency, false);
+    }
+
+    private void rollbackTransactionFromCashboxBalance(Transaction transaction, Currency userCurrency) {
+        applyTransactionToCashbox(transaction, userCurrency, true);
+    }
+
+    private void applyTransactionToCashbox(Transaction transaction, Currency userCurrency, boolean reverse) {
+        Cashbox cashbox = transaction.getCashbox();
+        BigDecimal balance = cashbox.getBalance();
+        BigDecimal amount = calculateCurrencyAmountForTransactionCashbox(transaction, userCurrency);
+
+        if (transaction.getType() == EXPENSE) {
+//            if (balance.compareTo(amount) < 0 && !reverse){
+//                throw new UnsupportedException("Cashbox balance is not enough!");
+//            }
+            balance = reverse ? balance.add(amount) : balance.subtract(amount);
+        } else {
+            balance = reverse ? balance.subtract(amount) : balance.add(amount);
+        }
+
+        cashbox.setBalance(balance);
+    }
+
+    private BigDecimal calculateCurrencyAmountForTransactionCashbox(Transaction transaction, Currency userCurrency) {
+        Cashbox cashbox = transaction.getCashbox();
+        BigDecimal amount;
+        if (transaction.getBaseCurrency().equals(cashbox.getCurrency())) {
+            amount = transaction.getBaseAmount();
+        } else if (userCurrency.equals(cashbox.getCurrency())) {
+            amount = transaction.getAmount();
+        } else {
+            amount = currencyService.convert(transaction.getAmount(), userCurrency, cashbox.getCurrency(), transaction.getTransactionDate());
+        }
+        return amount;
+    }
+
     @Transactional
     @Override
     public void deleteTransaction(UUID id) {
-        securityContextHelper.validateLoggedInUser();
+        Currency userCurrency = securityContextHelper.getLoggedInUser().getCurrency();
+        Transaction transaction = getTransaction(id);
         transactionRepository.deleteById(id);
+        rollbackTransactionFromCashboxBalance(transaction, userCurrency);
+
         log.info("TransactionService deleteTransaction : Transaction successfully deleted with id : {}", id);
     }
 
@@ -147,7 +201,7 @@ public class TransactionServiceImpl implements TransactionService {
                     amount,
                     transactionCurrency,
                     userBaseCurrency,
-                    LocalDate.now(ZoneId.of("Europe/Kyiv"))
+                    transaction.getTransactionDate()
             ));
         }
     }

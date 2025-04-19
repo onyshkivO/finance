@@ -1,9 +1,6 @@
 package com.onyshkiv.finance.service;
 
-import com.onyshkiv.finance.model.dto.response.BalanceStatsResponse;
-import com.onyshkiv.finance.model.dto.response.CategoryStatsResponse;
-import com.onyshkiv.finance.model.dto.response.MonthlyTransactionSummary;
-import com.onyshkiv.finance.model.dto.response.YearlyTransactionSummary;
+import com.onyshkiv.finance.model.dto.response.*;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -18,4 +15,6 @@ public interface StatsService {
     List<YearlyTransactionSummary> getYearlySummary(int year);
 
     List<MonthlyTransactionSummary> getMonthlySummary(int year, int month);
+
+    List<CashboxStatsResponse> getCashboxStats(LocalDate from, LocalDate to);
 }

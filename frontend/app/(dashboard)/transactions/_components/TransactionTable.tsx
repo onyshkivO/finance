@@ -71,6 +71,29 @@ const columns: ColumnDef<Transaction>[] = [
         }
     },
     {
+        accessorKey: "cashbox",
+        header: ({column})=>(
+            <DataTableColumnHeader
+            column={column}
+            title="Cashbox"
+            />
+        ),
+        filterFn: (row, columnId, filterValue) => {
+            if (!filterValue.length) return true;
+            return filterValue.includes(row.original.cashbox.id);
+        },
+        cell: ({ row }) => (
+            <div className="flex gap-2 capitalize">
+                <div className="capitalize">{row.original.cashbox.name}</div>
+            </div>
+        ),
+        sortingFn: (rowA, rowB) => {
+            const nameA = rowA.original.cashbox.name.toLowerCase();
+            const nameB = rowB.original.cashbox.name.toLowerCase();
+            return nameA.localeCompare(nameB);
+        }
+    },
+    {
         accessorKey: "description",
         header: ({column})=>(
             <DataTableColumnHeader
@@ -199,9 +222,23 @@ function TransactionsTable({ from, to }: Props) {
               label: `${transaction.category.icon} ${transaction.category.name}`,
           });
       });
+   
       const uniqueCategories = new Set(categoriesMap.values());
       return Array.from(uniqueCategories);
   }, [history.data]);
+
+
+  const cashboxOptions = useMemo(() => {
+    const cashboxMap = new Map();
+    history.data?.forEach((transaction) => {
+        cashboxMap.set(transaction.cashbox.id, {
+            value: transaction.cashbox.id,
+            label: `${transaction.cashbox.name}`,
+        });
+    });   
+    const uniqueCashbox = new Set(cashboxMap.values());
+    return Array.from(uniqueCashbox);
+}, [history.data]);
 
     return (
         <div className="w-full">
@@ -222,6 +259,13 @@ function TransactionsTable({ from, to }: Props) {
                   {label: "Income", value: "income"},
                   {label: "Expense", value: "expense"},
                 ]}
+              />
+            )}
+            {table.getColumn("cashbox") && (
+                <DataTableFacetedFilter 
+                title="Cashbox" 
+                column={table.getColumn("cashbox")} 
+                options={cashboxOptions}
               />
             )}
               </div>

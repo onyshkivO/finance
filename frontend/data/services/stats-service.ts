@@ -1,7 +1,7 @@
 
 import clientApi from "@/data/services/client-api";
-import { normalizeCategoryStats } from "@/lib/helpers";
-import { BackendCategoryStats, BalanceStats, CategoryStatsType, HistoryStatsType, Period, Timeframe } from "@/lib/types";
+import { normalizeCashboxStats, normalizeCategoryStats } from "@/lib/helpers";
+import { BackendCashboxStats, BackendCategoryStats, BalanceStats, CashboxStatsType, CategoryStatsType, HistoryStatsType, Period, Timeframe } from "@/lib/types";
 
 export async function getBalanceStats(
     from: Date,
@@ -55,6 +55,34 @@ export async function getCategoryStats(
     }
 }
 
+
+export async function getCashboxStats(
+    from: Date,
+    to: Date,
+    config?: {
+        onSuccess?: (data: CashboxStatsType[]) => void;
+        onError?: (error: unknown) => void;
+    }
+): Promise<CashboxStatsType[]> {
+    try {
+        const response = await clientApi.get<BackendCashboxStats[]>(`/stats/cashbox`, {
+            params: { 
+                from: from.toISOString().split("T")[0], 
+                to: to.toISOString().split("T")[0]
+            }
+        });
+
+        const normalizedData = normalizeCashboxStats(response.data);
+
+        config?.onSuccess?.(normalizedData);
+        return normalizedData;
+    } catch (error) {
+        console.error("Failed to fetch balance stats:", error);
+        config?.onError?.(error);
+        throw error;
+    }
+}
+
 export async function getHistoryPeriods(
     config?: {
         onSuccess?: (data: number[]) => void;
@@ -85,7 +113,7 @@ export async function getHistoryData(
         const response = await clientApi.get<HistoryStatsType[]>(`/stats/${timeframe}`, {
             params: { 
                 year: period.year, 
-                month: period.month
+                month: period.month+1
             }
         });
 

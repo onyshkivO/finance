@@ -1,6 +1,7 @@
 package com.onyshkiv.finance.model.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.onyshkiv.finance.model.dto.response.CashboxResponse;
 import com.onyshkiv.finance.model.entity.Currency;
 import com.onyshkiv.finance.model.entity.TransactionType;
 import com.onyshkiv.finance.util.ValidEnum;
@@ -37,6 +38,8 @@ public class TransactionDto {
     private String description;
 
     private Currency currency;
+
+    private CashboxResponse cashbox;
 
     @NotNull(message = "invalid transaction date")
     @DateTimeFormat(pattern = "dd-MM-yyyy")

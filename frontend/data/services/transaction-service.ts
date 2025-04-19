@@ -6,13 +6,14 @@ import { format } from "date-fns";
 import Cookies from "js-cookie";
 
 export async function CreateTransaction(form: CreateTransactionSchemaType) {
+    console.log("form", form);
     const parsedBody = CreateTransactionSchema.safeParse(form);
     if (!parsedBody.success) {
         throw new Error(parsedBody.error.message);
     }
 
-    const { amount, category, date, description, type, currency } = parsedBody.data;
-
+    const { amount, category, date, description, type, currency, cashbox } = parsedBody.data;
+    
     try {
         const response = await clientApi.post("/transaction", {
             category: {
@@ -22,7 +23,10 @@ export async function CreateTransaction(form: CreateTransactionSchemaType) {
             amount: amount,
             description: description || null,
             currency: currency,
-            transactionDate: format(date, 'dd-MM-yyyy') // Format date to match DTO pattern
+            transactionDate: format(date, 'dd-MM-yyyy'),
+            cashbox:{ 
+                id: cashbox
+            }
         });
 
         return response.data;
