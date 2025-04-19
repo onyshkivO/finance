@@ -119,7 +119,7 @@ function MonthSelector({
             <SelectContent>
                 {[0,1,2,3,4,5,6,7,8,9,10,11].map((month) => {
                     const monthStr = new Date(period.year, month,1).toLocaleString(
-                        "default",
+                        "en-US",
                         {month:"long"}
                     )
                     return (

@@ -63,7 +63,7 @@ public class StatsController {
 
     @GetMapping("/month")
     public ResponseEntity<List<MonthlyTransactionSummary>> getMonthlySummary(@RequestParam int year, @RequestParam int month) {
-        List<MonthlyTransactionSummary> result = statsService.getMonthlySummary(year, month);
+        List<MonthlyTransactionSummary> result = statsService.getMonthlySummary(year, month+1);
         return ResponseEntity.ok(result);
     }
 }

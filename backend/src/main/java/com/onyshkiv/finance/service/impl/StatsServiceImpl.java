@@ -104,12 +104,14 @@ public class StatsServiceImpl implements StatsService {
     }
 
     public List<YearlyTransactionSummary> getYearlySummary(int year) {
-        List<Object[]> results = transactionRepository.sumAmountByYearGroupedByMonthAndType(year);
+        UUID loggedInUserId = securityContextHelper.getLoggedInUser().getId();
+        List<Object[]> results = transactionRepository.sumAmountByYearGroupedByMonthAndType(year, loggedInUserId);
         return mapYearlyResults(results, year);
     }
 
     public List<MonthlyTransactionSummary> getMonthlySummary(int year, int month) {
-        List<Object[]> results = transactionRepository.sumAmountByMonthGroupedByDayAndType(year, month);
+        UUID loggedInUserId = securityContextHelper.getLoggedInUser().getId();
+        List<Object[]> results = transactionRepository.sumAmountByMonthGroupedByDayAndType(year, month, loggedInUserId);
         return mapMonthlyResults(results, year, month);
     }
 

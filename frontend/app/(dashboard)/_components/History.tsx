@@ -28,6 +28,7 @@ function History({ userCurrency }: { userCurrency: Currency }) {
         year: new Date().getFullYear(),
     });
 
+    console.log("month", period.month);
     /* eslint-disable @typescript-eslint/no-unused-vars */
     const formatter = useMemo(() => {
         return GetFormatterForCurrency(userCurrency.code);
@@ -119,10 +120,10 @@ function History({ userCurrency }: { userCurrency: Currency }) {
                                         padding={{ left: 5, right: 5 }}
                                         dataKey={(data) => {
                                             const { year, month, day } = data;
-                                            const date = new Date(year, month, day || 1);
+                                            const date = new Date(year, month-1, day || 1);
 
                                             if (timeframe === "year") {
-                                                return date.toLocaleDateString("default", {
+                                                return date.toLocaleDateString("en-US", {
                                                     month: "long",
                                                 });
                                             }

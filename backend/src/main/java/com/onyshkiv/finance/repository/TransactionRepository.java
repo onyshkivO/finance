@@ -54,14 +54,16 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
 
     @Query("SELECT EXTRACT(MONTH FROM t.transactionDate) AS month, t.type, SUM(t.amount) " +
             "FROM Transaction t WHERE EXTRACT(YEAR FROM t.transactionDate) = :year " +
+            "AND t.userId = :userId " +
             "GROUP BY month, t.type")
-    List<Object[]> sumAmountByYearGroupedByMonthAndType(@Param("year") int year);
+    List<Object[]> sumAmountByYearGroupedByMonthAndType(@Param("year") int year, @Param("userId") UUID userId);
 
     @Query("SELECT EXTRACT(DAY FROM t.transactionDate) AS day, t.type, SUM(t.amount) " +
             "FROM Transaction t WHERE EXTRACT(YEAR FROM t.transactionDate) = :year " +
             "AND EXTRACT(MONTH FROM t.transactionDate) = :month " +
+            "AND t.userId = :userId " +
             "GROUP BY day, t.type")
-    List<Object[]> sumAmountByMonthGroupedByDayAndType(@Param("year") int year, @Param("month") int month);
+    List<Object[]> sumAmountByMonthGroupedByDayAndType(@Param("year") int year, @Param("month") int month, @Param("userId") UUID userId);
 
     @Query("SELECT t FROM Transaction t " +
             "WHERE t.userId = :userId " +

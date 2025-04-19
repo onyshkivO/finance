@@ -113,7 +113,7 @@ export async function getHistoryData(
         const response = await clientApi.get<HistoryStatsType[]>(`/stats/${timeframe}`, {
             params: { 
                 year: period.year, 
-                month: period.month
+                month: period.month+1
             }
         });
 
