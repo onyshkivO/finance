@@ -24,12 +24,13 @@ import { Loader2 } from "lucide-react";
 interface Props {
     open: boolean;
     setOpen: (open: boolean) => void;
+    successCallback: () => void;
     cashbox: Cashbox;
     user: UserData | null;
 }
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
-function CreateTransferDialog({ cashbox, user, open, setOpen }: Props) {
+function CreateTransferDialog({ cashbox, user, open, setOpen, successCallback }: Props) {
     const form = useForm<CreateTransferSchemaType>({
         resolver: zodResolver(CreateTransferSchema),
         defaultValues: {
@@ -61,6 +62,7 @@ function CreateTransferDialog({ cashbox, user, open, setOpen }: Props) {
                 date: new Date()
             });
             setOpen(false);
+            successCallback()
             queryClient.invalidateQueries({ queryKey: ["cashboxesOb"] });
         },
         onError: (error) => {

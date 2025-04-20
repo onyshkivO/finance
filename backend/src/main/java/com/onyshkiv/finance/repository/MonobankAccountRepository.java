@@ -1,6 +1,7 @@
 package com.onyshkiv.finance.repository;
 
 import com.onyshkiv.finance.model.entity.MonobankAccount;
+import jakarta.persistence.Column;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -15,10 +16,10 @@ import java.util.UUID;
 public interface MonobankAccountRepository extends JpaRepository<MonobankAccount, UUID> {
     @Modifying
     @Query(value = """
-                INSERT INTO monobank_account (id, user_id, client_id, cashbox_id, name, account_id, send_id, iban, currency_code, type, created_at, updated_at)
+                INSERT INTO monobank_account (id, user_id, client_id, cashbox_id, name, account_id, send_id, iban, currency_code, type, cashback_type, masked_pan, created_at, updated_at)
                 VALUES (:#{#account.id}, :#{#account.userId}, :#{#account.clientId}, :#{#account.cashbox.id}, :#{#account.name}, :#{#account.accountId},\s
                         :#{#account.sendId}, :#{#account.iban}, :#{#account.currencyCode}, CAST(:#{#account.type.name()} AS monobank_account_type_enum),\s
-                        CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                        :#{#account.cashbackType}, :#{#account.maskedPan}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
                 ON CONFLICT ON CONSTRAINT uk_monobank_account_user_account
                 DO UPDATE SET\s
                     client_id = EXCLUDED.client_id,
@@ -27,6 +28,8 @@ public interface MonobankAccountRepository extends JpaRepository<MonobankAccount
                     iban = EXCLUDED.iban,
                     currency_code = EXCLUDED.currency_code,
                     type = EXCLUDED.type,
+                    cashback_type = EXCLUDED.cashback_type,
+                    masked_pan = EXCLUDED.masked_pan,
                     updated_at = CURRENT_TIMESTAMP
            \s""", nativeQuery = true)
     void upsertMonobankAccount(@Param("account") MonobankAccount account);

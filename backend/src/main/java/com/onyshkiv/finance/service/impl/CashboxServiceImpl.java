@@ -123,6 +123,7 @@ public class CashboxServiceImpl implements CashboxService {
     }
 
     @Override
+    @Transactional
     public CashboxResponse update(UUID id, CashboxRequest cashboxRequest) {
         UUID loggedUserId = securityContextHelper.getLoggedInUser().getId();
         Cashbox cashbox = getCashbox(id);
@@ -132,6 +133,7 @@ public class CashboxServiceImpl implements CashboxService {
             throw new DuplicationException("Cashbox with name " + cashbox.getName() + " already exists");
         }
         cashbox.setName(cashboxRequest.getName());
+        cashbox.setBalance(cashboxRequest.getBalance());
         return applicationMapper.cashboxToCashboxResponse(cashbox);
     }
 

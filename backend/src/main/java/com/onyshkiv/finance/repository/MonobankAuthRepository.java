@@ -10,4 +10,6 @@ import java.util.UUID;
 @Repository
 public interface MonobankAuthRepository extends JpaRepository<MonobankAuth, UUID> {
     Optional<MonobankAuth> findByRequestId(String requestId);
+
+    Optional<MonobankAuth> findByUserId(UUID userId);
 }
