@@ -12,6 +12,7 @@ export type CreateCashboxSchemaType = z.infer<
 
 export const CreateTransferSchema = z.object({
     amount: z.coerce.number().positive().multipleOf(0.01),
+    coefficient: z.number().positive(),
     description: z.string().optional(),
     date: z.coerce.date(),
     cashboxFrom: z.string(),
