@@ -10,12 +10,13 @@ export async function CreateCashbox(form: CreateCashboxSchemaType) {
         throw new Error(parsedBody.error.message);
     }
 
-    const { name, currency } = parsedBody.data;
+    const { name, currency, balance } = parsedBody.data;
 
     try {
         const response = await clientApi.post("/cashbox", {
             name: name,
-            currency: currency
+            currency: currency,
+            balance: balance
         });
 
         return response.data;
@@ -58,47 +59,29 @@ export async function CreateTransfer(form: CreateTransferSchemaType) {
 
         return response.data;
     } catch (error) {
-        console.error("Error creating екфтіфсешщт:", error);
+        console.error("Error creating cashbox:", error);
         throw error;
     }
 }
 
-//   export async function DeleteTransaction(id: string) {
+export async function UpdateCashbox(form: CreateCashboxSchemaType, id: string) {
+    const parsedBody = CreateCashboxSchema.safeParse(form);
+    if (!parsedBody.success) {
+        throw new Error(parsedBody.error.message);
+    }
 
-//     try {
-//         const response = await clientApi.delete(`/transaction/${id}`, {
-//         });
+    const { name, currency, balance } = parsedBody.data;
 
-//         return response.data;
-//     } catch (error) {
-//         console.error("Error deleting transaction:", error);
-//         throw new Error("Internal server error");
-//     }
-// }
+    try {
+        const response = await clientApi.put(`/cashbox/${id}`, {
+            name: name,
+            currency: currency,
+            balance: balance
+        });
 
-// export async function UpdateTransaction(id: string, form: CreateTransactionSchemaType) {
-//     const parsedBody = CreateTransactionSchema.safeParse(form);
-//     if (!parsedBody.success) {
-//         throw new Error(parsedBody.error.message);
-//     }
-
-//     const { amount, category, date, description, type, currency } = parsedBody.data;
-
-//     try {
-//         const response = await clientApi.put(`/transaction/${id}`, {
-//             category: {
-//                 id: category
-//             },
-//             type: type.toUpperCase(),
-//             amount: amount,
-//             description: description || null,
-//             currency: currency,
-//             transactionDate: format(date, 'dd-MM-yyyy')
-//         });
-
-//         return response.data;
-//     } catch (error) {
-//         console.error("Error updating transaction:", error);
-//         throw new Error("Internal server error");
-//     }
-// }
+        return response.data;
+    } catch (error) {
+        console.error("Error creating cashbox:", error);
+        throw new Error("Internal server error");
+    }
+}

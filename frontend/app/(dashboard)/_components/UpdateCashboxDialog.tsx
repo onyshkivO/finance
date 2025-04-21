@@ -1,6 +1,6 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
@@ -8,59 +8,59 @@ import {
     CreateCashboxSchemaType,
 } from "@/schema/cashbox";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, PlusSquare } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import React, { useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Cashbox, CURRENCIES } from "@/lib/types";
-import { CreateCashbox } from "@/data/services/cashbox-service";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Cashbox } from "@/lib/types";
+import { UpdateCashbox } from "@/data/services/cashbox-service";
 
 interface Props {
-    defaultCurrency: string;
-    successCallback: (cashbox: Cashbox) => void;
-    trigger?: React.ReactNode;
+    open: boolean;
+    setOpen: (open: boolean) => void;
+    successCallback: () => void;
+    cashbox: Cashbox;
 }
 
-function CreateCashboxDialog({ successCallback, trigger, defaultCurrency }: Props) {
-    const [open, setOpen] = React.useState(false);
+function UpdateCashboxDialog({ cashbox, open, setOpen, successCallback }: Props) {
     const form = useForm<CreateCashboxSchemaType>({
         resolver: zodResolver(CreateCashboxSchema),
         defaultValues: {
-            name: "",
-            currency: defaultCurrency,
-            balance: 0,
+            name: cashbox.name,
+            currency: cashbox.currency,
+            balance: cashbox.balance,
         },
     });
 
     const queryClient = useQueryClient();
     const { mutate, isPending } = useMutation({
-        mutationFn: CreateCashbox,
+        mutationFn: (values: CreateCashboxSchemaType) => {
+                    console.log('Updating Cashbox with values:', values);
+                    console.log('Cashbox ID:', cashbox.id);
+                    return UpdateCashbox(values, cashbox.id);
+                },
         onSuccess: async (data: Cashbox) => {
-            form.reset({
-                name: "",
-                currency: defaultCurrency,
+            form.reset();
+            toast.success(`Cashbox ${data.name} updated successfully`, {
+                id: "update-cashbox",
             });
-            toast.success(`Cashbox ${data.name} created successfully`, {
-                id: "create-cashbox",
-            });
-            successCallback(data);
+            successCallback()
             await queryClient.invalidateQueries({
                 queryKey: ["cashboxes"],
             });
-            setOpen((prev) => !prev);
+            setOpen(false);
         },
         onError: () => {
             toast.error("Something went wrong", {
-                id: "create-cashbox",
+                id: "update-cashbox",
             });
         },
     });
 
     const onSubmit = useCallback(
         (values: CreateCashboxSchemaType) => {
-            toast.loading("Creating cashbox...", { id: "create-cashbox" });
+            toast.loading("Updating cashbox...", { id: "update-cashbox" });
             mutate(values);
         },
         [mutate]
@@ -69,25 +69,9 @@ function CreateCashboxDialog({ successCallback, trigger, defaultCurrency }: Prop
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-                {trigger ? (
-                    trigger
-                ) : (
-                    <Button
-                        variant="ghost"
-                        className="flex border-separate items-center justify-start rounded-none border-b px-3 py-3 text-muted-foreground"
-                    >
-                        <PlusSquare className="mr-2 h-4 w-4" />
-                        Create new
-                    </Button>
-                )}
-            </DialogTrigger>
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>Create new cashbox</DialogTitle>
-                    <DialogDescription>
-                        Add a new cashbox to manage your finances
-                    </DialogDescription>
+                    <DialogTitle>Update cashbox</DialogTitle>
                 </DialogHeader>
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
@@ -106,7 +90,7 @@ function CreateCashboxDialog({ successCallback, trigger, defaultCurrency }: Prop
                                 </FormItem>
                             )}
                         />
-                        <FormField
+                        {/* <FormField
                                 control={form.control}
                                 name="currency"
                                 render={({ field }) => (
@@ -133,7 +117,7 @@ function CreateCashboxDialog({ successCallback, trigger, defaultCurrency }: Prop
                                         </FormDescription>
                                     </FormItem>
                                 )}
-                            />
+                            /> */}
                         <FormField
                             control={form.control}
                             name="balance"
@@ -149,7 +133,7 @@ function CreateCashboxDialog({ successCallback, trigger, defaultCurrency }: Prop
                                         />
                                     </FormControl>
                                     <FormDescription>
-                                        Set the initial balance for this cashbox
+                                        Set the balance for this cashbox
                                     </FormDescription>
                                 </FormItem>
                             )}
@@ -179,7 +163,7 @@ function CreateCashboxDialog({ successCallback, trigger, defaultCurrency }: Prop
                                 Creating <Loader2 className="animate-spin h-4 w-4 ml-2" />
                             </>
                         ) : (
-                            "Create"
+                            "Update"
                         )}
                     </Button>
                 </DialogFooter>
@@ -188,4 +172,4 @@ function CreateCashboxDialog({ successCallback, trigger, defaultCurrency }: Prop
     );
 }
 
-export default CreateCashboxDialog;
+export default UpdateCashboxDialog;

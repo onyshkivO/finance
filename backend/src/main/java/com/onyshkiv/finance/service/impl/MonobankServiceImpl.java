@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.onyshkiv.finance.exception.ExternalServiceException;
 import com.onyshkiv.finance.exception.NotFoundException;
 import com.onyshkiv.finance.model.dto.MonobankAuthDto;
-import com.onyshkiv.finance.model.dto.monobank.MonobankAccountDto;
+import com.onyshkiv.finance.model.dto.monobank.MonobankCardResponse;
 import com.onyshkiv.finance.model.dto.monobank.MonobankClientDto;
 import com.onyshkiv.finance.model.dto.monobank.StatementItemDetailsDto;
 import com.onyshkiv.finance.model.dto.monobank.StatementItemDto;
@@ -58,6 +58,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static com.onyshkiv.finance.model.entity.TransactionType.EXPENSE;
+import static com.onyshkiv.finance.util.Helper.convertCurrencyCodeToCurrency;
 
 @Service
 @Slf4j
@@ -67,7 +68,7 @@ public class MonobankServiceImpl implements MonobankService {
     private static final String SET_WEBHOOK = "/personal/corp/webhook";
     private static final String CLIENT_INFO = "/personal/client-info";
 
-    private static final String BASIC_URI = "http://13.60.241.29:80";
+    private static final String BASIC_URI = "https://61cd-178-212-97-140.ngrok-free.app";
     private static final String CONFIRM_WEBHOOK_URL = BASIC_URI + "/mono/confirm";
     private static final String TRANSACTION_WEBHOOK_URL = BASIC_URI + "/mono/transaction";
     private final UserRepository userRepository;
@@ -124,13 +125,21 @@ public class MonobankServiceImpl implements MonobankService {
 
     @Transactional
     public MonobankAuthDto requestAccessAndStore() {
-        securityContextHelper.validateLoggedInUser();
+        UUID loggedInUserId = securityContextHelper.getLoggedInUser().getId();
+        Optional<MonobankAuth> monobankAuthFromDb = monobankAuthRepository.findByUserId(loggedInUserId);
+        if  (monobankAuthFromDb.isPresent()){
+            return MonobankAuthDto.builder()
+                    .isConnected(monobankAuthFromDb.get().isActivated())
+                    .acceptUrl(monobankAuthFromDb.get().getAcceptUrl())
+                    .build();
+        }
         try {
             String responseJson = requestAccess();
 
             MonobankAuthDto response = objectMapper.readValue(responseJson, MonobankAuthDto.class);
+            response.setIsConnected(false);
             MonobankAuth auth = MonobankAuth.builder()
-                    .userId(securityContextHelper.getLoggedInUser().getId())
+                    .userId(loggedInUserId)
                     .activated(false)
                     .requestId(response.getTokenRequestId())
                     .acceptUrl(response.getAcceptUrl())
@@ -192,6 +201,7 @@ public class MonobankServiceImpl implements MonobankService {
                 .userId(userId)
                 .category(categoryIdOptional.map(Category::new).orElse(null))
                 .type(type)
+                .cashbox(monobankAccount.getCashbox())
                 .description(transactionDetails.getDescription())
                 .transactionDate(transactionDetails.getTransactionDate())
                 .build();
@@ -201,16 +211,6 @@ public class MonobankServiceImpl implements MonobankService {
         cashbox.setBalance(EXPENSE.equals(transaction.getType()) ? cashboxBalance.subtract(transaction.getBaseAmount()) : cashboxBalance.add(transaction.getBaseAmount()));
         transactionRepository.save(transaction);
 
-    }
-
-    private Currency convertCurrencyCodeToCurrency(Integer currencyCode) {
-        return switch (currencyCode) {
-            case 978 -> Currency.EUR;
-            case 840 -> Currency.USD;
-            case 980 -> Currency.UAH;
-            default ->
-                    throw new UnsupportedOperationException("Cannot convert currencyCode " + currencyCode + " to currency");
-        };
     }
 
     @Override
@@ -231,11 +231,11 @@ public class MonobankServiceImpl implements MonobankService {
     }
 
     @Override
-    public List<MonobankAccountDto> getUserMonobankAccounts() {
+    public List<MonobankCardResponse> getUserMonobankAccounts() {
         UUID userId = securityContextHelper.getLoggedInUser().getId();
         List<MonobankAccount> userMonobankAccounts = monobankAccountRepository.findAllByUserId(userId);
         return userMonobankAccounts.stream()
-                .map(applicationMapper::monobankAccountToMonobankAccountDto)
+                .map(applicationMapper::monobankAccountToMonobankCardResponse)
                 .toList();
     }
 
@@ -248,6 +248,7 @@ public class MonobankServiceImpl implements MonobankService {
             monobankAccounts.forEach(account -> {
                 Currency accountCurrency = convertCurrencyCodeToCurrency(account.getCurrencyCode());
                 Cashbox cashbox = Cashbox.builder()
+                        .id(UUID.randomUUID())
                         .userId(userId)
                         .currency(accountCurrency)
                         .name(account.getType().name().toLowerCase() + " " + accountCurrency.name() + " monobank card")

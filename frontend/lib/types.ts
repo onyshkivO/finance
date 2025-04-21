@@ -100,6 +100,23 @@ export type Cashbox = {
   balance: number;
 };
 
+
+export type MononbakAuth = {
+  isAccepted: boolean;
+  confirmUrl: string;
+};
+
+
+export type MonobankAccount = {
+    id: string;
+    cashboxId: string;
+    type: string;
+    currencyCode: number;
+    maskedPan: string;
+    iban: string;
+    isMonitoring: boolean;
+};
+
 export const CURRENCIES = [
   { code: "AED", name: "Emirati Dirham", symbol: "د.إ", locale: "ar-AE" },
   { code: "AFN", name: "Afghan Afghani", symbol: "؋", locale: "fa-AF" },

@@ -2,6 +2,7 @@ package com.onyshkiv.finance.service;
 
 import com.onyshkiv.finance.model.dto.MonobankAuthDto;
 import com.onyshkiv.finance.model.dto.monobank.MonobankAccountDto;
+import com.onyshkiv.finance.model.dto.monobank.MonobankCardResponse;
 import com.onyshkiv.finance.model.dto.monobank.StatementItemDto;
 
 import java.util.List;
@@ -16,5 +17,5 @@ public interface MonobankService {
     void monitorAccount(String accountId);
     void unmonitorAccount(String accountId);
 
-    List<MonobankAccountDto> getUserMonobankAccounts();
+    List<MonobankCardResponse> getUserMonobankAccounts();
 }

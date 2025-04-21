@@ -18,6 +18,7 @@ import { redirect } from "next/navigation";
 import Cookies from "js-cookie";
 import UpdateCategoryDialog from "../_components/UpdateCategoryDialog";
 import CashboxOverviewCard from "../_components/CashboxOverviewCard";
+import MonobankDialog from "../_components/MonobankDialog";
 
 function Page() {
     const { user, isLoading } = useUser();
@@ -60,6 +61,11 @@ function Page() {
                             Manage your account settings and categories
                         </p>
                     </div>
+                    <Separator />
+                    <div className="flex items-center gap-3">
+                        <MonobankDialog trigger={<Button variant={"outline"}
+                            className="border-emerald-500 bg-emerald-950 text-white hover:bg-emerald-700 hover:text-white cursor-pointer">Monobank</Button>} />
+                    </div>
                 </div>
             </div>
             {/* END HEADER */}
@@ -77,17 +83,6 @@ function Page() {
                         </CardContent>
                     </Card>
                     <CashboxOverviewCard user={user} />
-                    {/* <Card className="flex-1">
-                        <CardHeader>
-                            <CardTitle>Cashboxes</CardTitle>
-                            <CardDescription>
-                                Manage your cashboxes and their balances
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <CashboxOverviewCard />
-                        </CardContent>
-                    </Card> */}
                 </div>
                 <CategoryList type="income" />
                 <CategoryList type="expense" />

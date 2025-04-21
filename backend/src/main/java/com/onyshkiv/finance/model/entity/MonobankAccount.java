@@ -10,6 +10,7 @@ import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -55,6 +56,12 @@ public class MonobankAccount {
 
     @Column(name = "monitor", nullable = false)
     private Boolean monitor;
+
+    @Column(name = "cashback_type")
+    private String cashbackType;
+
+    @Column(name = "masked_pan")
+    private String maskedPan;
 
     @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;

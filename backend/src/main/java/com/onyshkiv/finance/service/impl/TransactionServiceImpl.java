@@ -2,6 +2,7 @@ package com.onyshkiv.finance.service.impl;
 
 import com.onyshkiv.finance.exception.NotFoundException;
 import com.onyshkiv.finance.exception.UnsupportedException;
+import com.onyshkiv.finance.model.dto.CategoryDto;
 import com.onyshkiv.finance.model.dto.TransactionDto;
 import com.onyshkiv.finance.model.entity.Cashbox;
 import com.onyshkiv.finance.model.entity.Currency;
@@ -22,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -185,7 +187,13 @@ public class TransactionServiceImpl implements TransactionService {
         UUID userId = securityContextHelper.getLoggedInUser().getId();
         return transactionRepository.findUserTransactionByDateRange(userId, from, to)
                 .stream()
-                .map(applicationMapper::transactionToTransactionDto)
+                .map(transaction->{
+                    TransactionDto transactionDto = applicationMapper.transactionToTransactionDto(transaction);
+                    if (transactionDto.getCategory() == null){
+                        transactionDto.setCategory(new CategoryDto(UUID.randomUUID(), "Other", transactionDto.getType(),null, Collections.emptySet()));
+                    }
+                    return transactionDto;
+                })
                 .toList();
     }
 

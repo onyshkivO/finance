@@ -25,6 +25,7 @@ function HistoryPeriodSelector({
         queryKey: ["overview", "history", "periods"],
         queryFn: () => getHistoryPeriods(),
     });
+    console.log("month 2", period.month)
 
     return (
         <div className="flex flex-wrap items-center gap-4">

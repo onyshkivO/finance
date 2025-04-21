@@ -441,4 +441,24 @@
                 constraintName="fk_monobank_account_cashbox"/>
     </changeSet>
 
+    <changeSet id="add-cashback_type-and-masked_pan-columns-to-monobank_account" author="onyshkiv" dbms="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="monobank_account"/>
+                <not>
+                    <columnExists tableName="monobank_account" columnName="masked_pan"/>
+                    <columnExists tableName="monobank_account" columnName="cashback_type"/>
+                </not>
+            </and>
+        </preConditions>
+
+        <addColumn tableName="monobank_account">
+            <column name="masked_pan" type="VARCHAR(255)"/>
+        </addColumn>
+        <addColumn tableName="monobank_account">
+            <column name="cashback_type" type="VARCHAR(255)"/>
+        </addColumn>
+
+    </changeSet>
+
 </databaseChangeLog>

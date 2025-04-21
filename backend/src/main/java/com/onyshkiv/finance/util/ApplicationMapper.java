@@ -3,6 +3,7 @@ package com.onyshkiv.finance.util;
 import com.onyshkiv.finance.model.dto.CategoryDto;
 import com.onyshkiv.finance.model.dto.TransactionDto;
 import com.onyshkiv.finance.model.dto.monobank.MonobankAccountDto;
+import com.onyshkiv.finance.model.dto.monobank.MonobankCardResponse;
 import com.onyshkiv.finance.model.dto.monobank.MonobankClientDto;
 import com.onyshkiv.finance.model.dto.request.CashboxRequest;
 import com.onyshkiv.finance.model.dto.request.SignUpRequest;
@@ -25,6 +26,8 @@ import java.math.RoundingMode;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import static com.onyshkiv.finance.util.Helper.convertCurrencyCodeToCurrency;
 
 @Mapper(componentModel = "spring")
 public abstract class ApplicationMapper {
@@ -76,27 +79,31 @@ public abstract class ApplicationMapper {
                 .iban(account.getIban())
                 .currencyCode(account.getCurrencyCode())
                 .type(MonobankAccountType.fromString(account.getType()))
+                .cashbackType(account.getCashbackType())
+                .maskedPan(account.getMaskedPan().get(0))//todo if list is empty???
                 .balance(account.getBalance().divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP))
                 .build()).toList();
     }
 
-    public MonobankAccountDto monobankAccountToMonobankAccountDto(MonobankAccount monobankAccount) {
-        return MonobankAccountDto.builder()
+    public MonobankCardResponse monobankAccountToMonobankCardResponse(MonobankAccount monobankAccount) {
+        return MonobankCardResponse.builder()
                 .id(monobankAccount.getAccountId())
-                .sendId(monobankAccount.getSendId())
                 .type(monobankAccount.getType().name())
-                .currencyCode(monobankAccount.getCurrencyCode())
+                .currencyCode(convertCurrencyCodeToCurrency(monobankAccount.getCurrencyCode()).name())
                 .iban(monobankAccount.getIban())
+                .isMonitoring(monobankAccount.getMonitor())
+                .maskedPan(monobankAccount.getMaskedPan())
                 .cashboxId(monobankAccount.getCashbox().getId())
                 .build();
     }
+
 
     public Cashbox cashboxRequestToCashbox(CashboxRequest cashboxRequest) {
         return Cashbox.builder()
                 .id(UUID.randomUUID())
                 .name(cashboxRequest.getName())
                 .currency(Currency.fromCode(cashboxRequest.getCurrency().toUpperCase()))
-                .balance(BigDecimal.ZERO)
+                .balance(cashboxRequest.getBalance())
                 .build();
     }
 
