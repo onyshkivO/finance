@@ -1,7 +1,7 @@
 "use client";
 
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
-import { CURRENCIES, TransactionType, UserData } from "@/lib/types";
+import { Cashbox, CURRENCIES, TransactionType, UserData } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { CreateTransactionSchema, CreateTransactionSchemaType } from "@/schema/transaction";
 import { ReactNode, useCallback, useState } from "react";
@@ -48,12 +48,17 @@ function CreateTransactionDialog({ trigger, type, user }: Props) {
         [form]
     );
 
-    const handleCashboxChange = useCallback(
-        (value: string) => {
-            form.setValue("cashbox", value);
-        },
-        [form]
-    );
+  const handleCashboxChange = useCallback(
+    (targetCashbox: Cashbox) => {
+        form.setValue("cashbox", targetCashbox.id);
+    },[form]);
+    
+    // const handleCashboxChange = useCallback(
+    //     (value: string) => {
+    //         form.setValue("cashbox", value);
+    //     },
+    //     [form]
+    // );
 
     const queryClient = useQueryClient();
 

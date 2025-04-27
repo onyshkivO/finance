@@ -25,7 +25,7 @@ function CashboxOverviewCard({ user }: { user: UserData }) {
     return (
         <SkeletonWrapper isLoading={cashboxesQuery.isFetching}>
 
-            <Card className="h-80 w-full col-span-6 bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm flex-1">
+            <Card className="h-100 w-full col-span-6 bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm flex-1">
                 <CardHeader>
                     <CardTitle className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2">

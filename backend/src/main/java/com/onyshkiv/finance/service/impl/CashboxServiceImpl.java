@@ -81,7 +81,9 @@ public class CashboxServiceImpl implements CashboxService {
         if (cashboxFrom.getBalance().compareTo(fromAmount) < 0) {
             throw new UnsupportedException("Cashbox " + cashboxFrom.getName() + " balance is not enough!");
         }
-        BigDecimal toAmount = transferAmount(fromAmount, cashboxFrom.getCurrency(), cashboxTo.getCurrency(), transferRequest.getDate());
+//        BigDecimal toAmount = transferAmount(fromAmount, cashboxFrom.getCurrency(), cashboxTo.getCurrency(), transferRequest.getDate());
+        BigDecimal toAmount = fromAmount.multiply(transferRequest.getCurrencyCoefficient());
+
         cashboxFrom.setBalance(cashboxFrom.getBalance().subtract(fromAmount));
         cashboxTo.setBalance(cashboxTo.getBalance().add(toAmount));
         Transfer transfer = Transfer.builder()

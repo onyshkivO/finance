@@ -14,7 +14,7 @@ import { fetchUserCashBoxes } from "@/data/services/cashbox-service";
 
 interface Props {
   user: UserData;
-  onChange: (value: string) => void;
+  onChange: (value: Cashbox) => void;
   defaultValue?: string;
 }
 
@@ -22,10 +22,6 @@ function CashboxPicker({ onChange, defaultValue, user }: Props) {
   const [open, setOpen] = React.useState(false);
   const [value, setValue] = React.useState(defaultValue || "");
 
-  useEffect(() => {
-    if (!value) return;
-    onChange(value);
-  }, [onChange, value]);
 
   useEffect(() => {
     if (defaultValue) {
@@ -37,6 +33,12 @@ function CashboxPicker({ onChange, defaultValue, user }: Props) {
     queryKey: ["cashboxes"],
     queryFn: () => fetchUserCashBoxes(),
   });
+
+  useEffect(() => {
+    if (!value) return;
+    const selected = cashboxes.find((cb) => cb.id === value);
+    if (selected) onChange(selected);
+  }, [onChange, value, cashboxes]);
 
   const selectedCashbox = cashboxes.find(
     (cashbox: Cashbox) => cashbox.id === value
@@ -87,6 +89,7 @@ function CashboxPicker({ onChange, defaultValue, user }: Props) {
                   onSelect={() => {
                     setValue(cashbox.id);
                     setOpen((prev) => !prev);
+                    onChange(cashbox); // 👈 pass full object
                   }}
                 >
                   <CashboxRow cashbox={cashbox} />

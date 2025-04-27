@@ -46,7 +46,7 @@ export async function CreateTransfer(form: CreateTransferSchemaType) {
         throw new Error(parsedBody.error.message);
     }
 
-    const { amount, date, description, cashboxFrom, cashboxTo} = parsedBody.data;
+    const { amount, date, description, cashboxFrom, cashboxTo, coefficient} = parsedBody.data;
     
     try {
         const response = await clientApi.put("/cashbox/transfer", {
@@ -54,7 +54,8 @@ export async function CreateTransfer(form: CreateTransferSchemaType) {
             description: description || null,
             date: format(date, 'dd-MM-yyyy'),
             cashboxFromId: cashboxFrom,
-            cashboxToId: cashboxTo
+            cashboxToId: cashboxTo,
+            currencyCoefficient: coefficient
         });
 
         return response.data;
