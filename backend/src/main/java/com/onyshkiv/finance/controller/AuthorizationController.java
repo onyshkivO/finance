@@ -1,5 +1,7 @@
 package com.onyshkiv.finance.controller;
 
+import com.onyshkiv.finance.model.dto.request.ForgotPasswordRequest;
+import com.onyshkiv.finance.model.dto.request.ResetPasswordRequest;
 import com.onyshkiv.finance.model.dto.request.SignInRequest;
 import com.onyshkiv.finance.model.dto.request.SignUpRequest;
 import com.onyshkiv.finance.model.dto.response.AuthorizationResponse;
@@ -10,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -33,5 +36,17 @@ public class AuthorizationController {
         AuthorizationResponse response = authorizationService.singIn(signInRequest);
 
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(@RequestBody ForgotPasswordRequest forgotPasswordRequest) {
+        authorizationService.sendResetLink(forgotPasswordRequest.getEmail());
+        return ResponseEntity.ok("Password reset link sent to your email");
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@RequestBody ResetPasswordRequest request) {
+        authorizationService.resetPassword(request.getToken(), request.getNewPassword());
+        return ResponseEntity.ok("Password has been reset successfully");
     }
 }
