@@ -6,5 +6,10 @@ import com.onyshkiv.finance.model.dto.response.AuthorizationResponse;
 
 public interface AuthorizationService {
     AuthorizationResponse singIn(SignInRequest signInRequest);
+
     AuthorizationResponse singUp(SignUpRequest signUpRequest);
+
+    void sendResetLink(String email);
+
+    void resetPassword(String token, String newPassword);
 }

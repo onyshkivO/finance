@@ -29,7 +29,7 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { CreateTransfer } from "@/data/services/cashbox-service";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -39,7 +39,6 @@ import {
 } from "@/schema/cashbox";
 import { useCallback, useState } from "react";
 import CashboxPicker from "./CashboxPicker";
-import { fetchCurrencyRate } from "@/data/services/external-currency-service";
 
 interface Props {
     open: boolean;
@@ -95,27 +94,15 @@ function CreateTransferDialog({
                 setIsSameCurrency(false);
                 if (customCoefficient) return;
     
-                // Use React Query with the object-based API format
-                const historyDataQuery = useQuery({
-                    queryKey: ['currencyRate', fromCurrency, toCurrency], // Define query key
-                    queryFn: () => fetchCurrencyRate(fromCurrency, toCurrency), // Define query function
-                    enabled: !customCoefficient, // This ensures the query only runs if customCoefficient is false
-                });
-    
-                // Handle loading or error states
-                if (historyDataQuery.isLoading) {
-                    // Optionally handle loading state (e.g., show a loader)
-                    return;
-                }
-    
-                if (historyDataQuery.isError || !historyDataQuery.data) {
-                    // Handle error or missing rate (e.g., set coefficient to 0 or show error message)
-                    form.setValue("coefficient", 0);
-                    return;
-                }
-    
-                // Set the coefficient if the data is available
-                form.setValue("coefficient", historyDataQuery.data);
+                    
+                fetch(`https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/${fromCurrency}.json`)
+                    .then((res) => res.json())
+                    .then((data) => {
+                        const rate = data[fromCurrency]?.[toCurrency];
+                        if (rate) {
+                            form.setValue("coefficient", rate);
+                        }
+                    });
             }
         },
         [cashbox.currency, customCoefficient, form]

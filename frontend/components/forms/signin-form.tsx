@@ -68,14 +68,21 @@ export function SigninForm() {
           </CardContent>
           <CardFooter className="flex flex-col items-center justify-center">
           <BackendErrors error={formState?.authErrors} />
-            <SubmitButton className="w-full" text="Sign Up" loadingText="Loading" />
+            <SubmitButton className="w-full" text="Sign In" loadingText="Loading" />
           </CardFooter>
         </Card>
-        <div className="mt-4 text-center text-sm">
-          Don&apos;t have an account?
-          <Link className="underline ml-2" href="signup">
-            Sign Up
-          </Link>
+        <div className="mt-4 text-center text-sm space-y-2">
+          <div>
+            Don&apos;t have an account?
+            <Link className="underline ml-2" href="signup">
+              Sign Up
+            </Link>
+          </div>
+          <div>
+            <Link className="underline" href="forgot">
+              Forgot Password?
+            </Link>
+          </div>
         </div>
       </form>
     </div>
