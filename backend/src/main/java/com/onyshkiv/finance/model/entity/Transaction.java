@@ -60,6 +60,14 @@ public class Transaction {
     @JdbcType(PostgreSQLEnumJdbcType.class)
     private Currency baseCurrency;
 
+    @Column(name = "coefficient", nullable = false)
+    private BigDecimal coefficient;
+
+    @Enumerated
+    @Column(name = "coefficient_currency", nullable = false)
+    @JdbcType(PostgreSQLEnumJdbcType.class)
+    private Currency coefficientCurrency;
+
     @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
 

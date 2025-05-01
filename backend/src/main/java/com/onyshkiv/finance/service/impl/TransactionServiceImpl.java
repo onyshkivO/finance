@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
@@ -67,7 +68,11 @@ public class TransactionServiceImpl implements TransactionService {
         transaction.setCashbox(cashboxService.getCashbox(transactionDto.getCashbox().getId()));
         transaction.setUserId(loggedInUser.getId());
 
-        setTransactionAmountInternal(transactionDto.getAmount(), transactionDto.getCurrency(), loggedInUser.getCurrency(), transaction);
+//        setTransactionAmountInternal(transactionDto.getAmount(), transactionDto.getCurrency(), loggedInUser.getCurrency(), transaction);
+        transaction.setBaseCurrency(transactionDto.getCurrency());
+        transaction.setBaseAmount(transactionDto.getAmount());
+        transaction.setCoefficientCurrency(loggedInUser.getCurrency());
+        transaction.setAmount(transactionDto.getCoefficient().multiply(transactionDto.getAmount()));
         Transaction savedTransaction = transactionRepository.save(transaction);
 
         applyTransactionToCashboxBalance(savedTransaction, loggedInUser.getCurrency());
@@ -88,11 +93,16 @@ public class TransactionServiceImpl implements TransactionService {
 
         transaction.setTransactionDate(transactionDto.getTransactionDate());
         transaction.setCategory(categoryService.getCategory(transactionDto.getCategory().getId()));
-        if (!transaction.getAmount().equals(transactionDto.getAmount())) {
-            rollbackTransactionFromCashboxBalance(transaction, loggedInUser.getCurrency());
-            setTransactionAmountInternal(transactionDto.getAmount(), transactionDto.getCurrency(), loggedInUser.getCurrency(), transaction);
-            applyTransactionToCashboxBalance(transaction, loggedInUser.getCurrency());
-        }
+//        if (!transaction.getAmount().equals(transactionDto.getAmount())) {
+        rollbackTransactionFromCashboxBalance(transaction, loggedInUser.getCurrency());
+//            setTransactionAmountInternal(transactionDto.getAmount(), transactionDto.getCurrency(), loggedInUser.getCurrency(), transaction);
+        transaction.setBaseCurrency(transactionDto.getCurrency());
+        transaction.setAmount(transactionDto.getCoefficient().multiply(transactionDto.getAmount()));
+        transaction.setCoefficient(transactionDto.getCoefficient());
+        transaction.setCoefficientCurrency(loggedInUser.getCurrency());
+        transaction.setCashbox(cashboxService.getCashbox(transactionDto.getCashbox().getId()));
+        applyTransactionToCashboxBalance(transaction, loggedInUser.getCurrency());
+//        }
 
         transaction.setDescription(transactionDto.getDescription());
 
@@ -187,10 +197,10 @@ public class TransactionServiceImpl implements TransactionService {
         UUID userId = securityContextHelper.getLoggedInUser().getId();
         return transactionRepository.findUserTransactionByDateRange(userId, from, to)
                 .stream()
-                .map(transaction->{
+                .map(transaction -> {
                     TransactionDto transactionDto = applicationMapper.transactionToTransactionDto(transaction);
-                    if (transactionDto.getCategory() == null){
-                        transactionDto.setCategory(new CategoryDto(UUID.randomUUID(), "Other", transactionDto.getType(),null, Collections.emptySet()));
+                    if (transactionDto.getCategory() == null) {
+                        transactionDto.setCategory(new CategoryDto(UUID.randomUUID(), "Other", transactionDto.getType(), null, Collections.emptySet()));
                     }
                     return transactionDto;
                 })
@@ -200,17 +210,25 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public void setTransactionAmountInternal(BigDecimal amount, Currency transactionCurrency, Currency userBaseCurrency, Transaction transaction) {
         transaction.setBaseAmount(amount);
+        transaction.setCoefficientCurrency(userBaseCurrency);
         if (transactionCurrency == null || transactionCurrency.equals(userBaseCurrency)) {
             transaction.setBaseCurrency(userBaseCurrency);
+            transaction.setCoefficient(BigDecimal.ONE);
             transaction.setAmount(amount);
         } else {
-            transaction.setBaseCurrency(transactionCurrency);
-            transaction.setAmount(currencyService.convert(
-                    amount,
-                    transactionCurrency,
+            BigDecimal exchangeRate = currencyService.getExchangeRate(transactionCurrency,
                     userBaseCurrency,
-                    transaction.getTransactionDate()
-            ));
+                    transaction.getTransactionDate());
+            transaction.setBaseCurrency(transactionCurrency);
+            transaction.setCoefficient(exchangeRate);
+            transaction.setAmount(amount.multiply(exchangeRate).setScale(2, RoundingMode.HALF_UP));
+
+//            transaction.setAmount(currencyService.convert(
+//                    amount,
+//                    transactionCurrency,
+//                    userBaseCurrency,
+//                    transaction.getTransactionDate()
+//            ));
         }
     }
 
@@ -220,6 +238,8 @@ public class TransactionServiceImpl implements TransactionService {
         for (Transaction transaction : userTransactions) {
             if (transaction.getBaseCurrency().equals(currencyToConvert)) {
                 transaction.setAmount(transaction.getBaseAmount());
+            } else if (transaction.getCoefficientCurrency() != null && transaction.getCoefficient() != null && transaction.getCoefficientCurrency().equals(currencyToConvert)) {
+                transaction.setAmount(transaction.getBaseAmount().multiply(transaction.getCoefficient()));
             } else {
                 transaction.setAmount(currencyService.convert(transaction.getBaseAmount(), transaction.getBaseCurrency(), currencyToConvert, transaction.getTransactionDate()));
             }

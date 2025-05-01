@@ -31,12 +31,16 @@ interface Props {
 
 
 function CreateTransactionDialog({ trigger, type, user }: Props) {
+    const [isSameCurrency, setIsSameCurrency] = useState(true);
+    const [customCoefficient, setCustomCoefficient] = useState(false);
+
     const form = useForm<CreateTransactionSchemaType>({
         resolver: zodResolver(CreateTransactionSchema),
         defaultValues: {
             type: type,
             date: new Date(),
             currency: user?.currency.code,
+            coefficient: 1,
         },
     });
     const [open, setOpen] = useState(false);
@@ -61,6 +65,36 @@ function CreateTransactionDialog({ trigger, type, user }: Props) {
     // );
 
     const queryClient = useQueryClient();
+
+    const handleCurrencyChange = useCallback(
+        (value: string) => {
+            form.setValue("currency", value);
+            // setIsSameCurrency(value === user?.currency.code);
+            setCustomCoefficient(false);
+
+            if (value === user?.currency.code) {
+                setIsSameCurrency(true);
+                form.setValue("coefficient", 1);
+                return;
+            }
+            setIsSameCurrency(false);
+            if (customCoefficient) return;
+
+            fetch(`https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/${value.toLowerCase()}.json`)
+                .then((res) => res.json())
+                .then((data) => {
+                    console.log("data", data);
+                    console.log("value", value);
+                    console.log("user?.currency.code", user?.currency.code);
+                    const rate = data[value.toLowerCase()]?.[(user?.currency.code as string).toLowerCase()];
+                    console.log("rate", rate);
+                    if (rate) {
+                        form.setValue("coefficient", rate);
+                    }
+                });
+        },
+        [user?.currency.code, customCoefficient, form]
+    );
 
     const { mutate, isPending } = useMutation({
         mutationFn: CreateTransaction,
@@ -126,28 +160,13 @@ function CreateTransactionDialog({ trigger, type, user }: Props) {
                 </DialogHeader>
                 <Form {...form}>
                     <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
-                        <FormField
-                            control={form.control}
-                            name="description"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Description</FormLabel>
-                                    <FormControl>
-                                        <Input defaultValue={""} {...field} />
-                                    </FormControl>
-                                    <FormDescription>
-                                        Transaction description (optional)
-                                    </FormDescription>
-                                </FormItem>
-                            )}
-                        />
-                        <div className="flex items-center justify-between gap-2">
-
+                        {/* First row: Amount + Date */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <FormField
                                 control={form.control}
                                 name="amount"
                                 render={({ field }) => (
-                                    <FormItem  className="flex flex-col">
+                                    <FormItem>
                                         <FormLabel>Amount</FormLabel>
                                         <FormControl>
                                             <Input defaultValue={0} type="number" {...field} />
@@ -160,73 +179,9 @@ function CreateTransactionDialog({ trigger, type, user }: Props) {
                             />
                             <FormField
                                 control={form.control}
-                                name="currency"
-                                render={({ field }) => (
-                                    <FormItem className="w-[200px] flex flex-col">
-                                        <FormLabel>Currency</FormLabel>
-                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                            <FormControl>
-                                                <SelectTrigger className="w-[200px]">
-                                                    <SelectValue placeholder="Select currency" />
-                                                </SelectTrigger>
-                                            </FormControl>
-                                            <SelectContent className="w-[200px]">
-                                                <div className="max-h-[300px] overflow-y-auto">
-                                                    {CURRENCIES.map((currency) => (
-                                                        <SelectItem key={currency.code} value={currency.code}>
-                                                            {currency.code} - {currency.name}
-                                                        </SelectItem>
-                                                    ))}
-                                                </div>
-                                            </SelectContent>
-                                        </Select>
-                                        <FormDescription>
-                                            Transaction currency (required)
-                                        </FormDescription>
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-                        <div className="flex items-center justify-between gap-2">
-                            <FormField
-                                control={form.control}
-                                name="category"
-                                /* eslint-disable @typescript-eslint/no-unused-vars */
-                                render={({ field }) => (
-                                    <FormItem className="flex flex-col">
-                                        <FormLabel>Category</FormLabel>
-                                        <FormControl>
-                                            <CategoryPicker type={type} onChange={handleCategoryChange} />
-                                        </FormControl>
-                                        <FormDescription>
-                                            Select a category for this transaction
-                                        </FormDescription>
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="cashbox"
-                                /* eslint-disable @typescript-eslint/no-unused-vars */
-                                render={({ field }) => (
-                                    <FormItem className="flex flex-col">
-                                        <FormLabel>Cashbox</FormLabel>
-                                        <FormControl>
-                                            <CashboxPicker onChange={handleCashboxChange} user={user as UserData} />
-                                        </FormControl>
-                                        <FormDescription>
-                                            Select a cashbox for this transaction
-                                        </FormDescription>
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-                        <div className="flex items-center justify-between gap-2">
-                            <FormField
-                                control={form.control}
                                 name="date"
                                 render={({ field }) => (
-                                    <FormItem  className="flex flex-col">
+                                    <FormItem className="flex flex-col">
                                         <FormLabel>Transaction Date</FormLabel>
                                         <Popover>
                                             <PopoverTrigger asChild>
@@ -234,7 +189,7 @@ function CreateTransactionDialog({ trigger, type, user }: Props) {
                                                     <Button
                                                         variant={"outline"}
                                                         className={cn(
-                                                            "w-[200px] pl-3 text-left font-normal",
+                                                            "w-full pl-3 text-left font-normal",
                                                             !field.value && "text-muted-foreground"
                                                         )}
                                                     >
@@ -268,6 +223,120 @@ function CreateTransactionDialog({ trigger, type, user }: Props) {
                                 )}
                             />
                         </div>
+
+                        {/* Second row: Currency + Coefficient */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <FormField
+                                control={form.control}
+                                name="currency"
+                                render={({ field }) => (
+                                    <FormItem className="flex flex-col">
+                                        <FormLabel>Currency</FormLabel>
+                                        <Select onValueChange={handleCurrencyChange} defaultValue={field.value}>
+                                            <FormControl>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Select currency" />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                <div className="max-h-[300px] overflow-y-auto">
+                                                    {CURRENCIES.map((currency) => (
+                                                        <SelectItem key={currency.code} value={currency.code}>
+                                                            {currency.code} - {currency.name}
+                                                        </SelectItem>
+                                                    ))}
+                                                </div>
+                                            </SelectContent>
+                                        </Select>
+                                        <FormDescription>
+                                            Transaction currency (required)
+                                        </FormDescription>
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="coefficient"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Coefficient</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                type="number"
+                                                step="0.0001"
+                                                {...field}
+                                                disabled={isSameCurrency}
+                                                value={isSameCurrency ? 1 : field.value ?? 0}
+                                                onChange={(e) => {
+                                                    setCustomCoefficient(true);
+                                                    const value = parseFloat(e.target.value);
+                                                    field.onChange(value);
+                                                }}
+                                            />
+                                        </FormControl>
+                                        <FormDescription>
+                                            {isSameCurrency
+                                                ? "Same currency — coefficient is 1"
+                                                : "Currency exchange coefficient. Auto-filled, but you can override."}
+                                        </FormDescription>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+
+                        {/* Third row: Category + Cashbox */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <FormField
+                                control={form.control}
+                                name="category"
+                                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                                render={({ field }) => (
+                                    <FormItem className="flex flex-col">
+                                        <FormLabel>Category</FormLabel>
+                                        <FormControl>
+                                            <CategoryPicker type={type} onChange={handleCategoryChange} />
+                                        </FormControl>
+                                        <FormDescription>
+                                            Select a category for this transaction
+                                        </FormDescription>
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="cashbox"
+                                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                                render={({ field }) => (
+                                    <FormItem className="flex flex-col">
+                                        <FormLabel>Cashbox</FormLabel>
+                                        <FormControl>
+                                            <CashboxPicker onChange={handleCashboxChange} user={user as UserData} />
+                                        </FormControl>
+                                        <FormDescription>
+                                            Select a cashbox for this transaction
+                                        </FormDescription>
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+
+                        {/* Fourth row: Description */}
+                        <FormField
+                            control={form.control}
+                            name="description"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Description</FormLabel>
+                                    <FormControl>
+                                        <Input defaultValue={""} {...field} />
+                                    </FormControl>
+                                    <FormDescription>
+                                        Transaction description (optional)
+                                    </FormDescription>
+                                </FormItem>
+                            )}
+                        />
                     </form>
                 </Form>
                 <DialogFooter>

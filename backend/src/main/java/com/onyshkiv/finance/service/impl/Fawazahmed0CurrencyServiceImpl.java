@@ -34,19 +34,34 @@ public class Fawazahmed0CurrencyServiceImpl implements CurrencyService {
 
     @Override
     public BigDecimal convert(BigDecimal amount, Currency currencyFrom, Currency currencyTo, LocalDate dateOfTransaction) {
+        BigDecimal exchangeRate = getExchangeRate(currencyFrom, currencyTo, dateOfTransaction);
+//        String currencyFromString = currencyFrom.name().toLowerCase();
+//        String currencyToString = currencyTo.name().toLowerCase();
+//
+//        double exchangeRate;
+//        try {
+//            exchangeRate = getExchangeRate(dateOfTransaction, currencyFromString, currencyToString, BASE_URL);
+//            return amount.multiply(BigDecimal.valueOf(exchangeRate)).setScale(2, RoundingMode.HALF_UP);
+//        } catch (ExternalServiceException e) {
+//            log.warn("Error while getting exchange rate for currencies from : {} to : {}, from base url, retrying with fallback url",
+//                    currencyFromString, currencyToString);
+//        }
+//        exchangeRate = getExchangeRate(dateOfTransaction, currencyFromString, currencyToString, FALLBACK_URL);
+        return amount.multiply(exchangeRate).setScale(2, RoundingMode.HALF_UP);
+    }
+
+    @Override
+    public BigDecimal getExchangeRate(Currency currencyFrom, Currency currencyTo, LocalDate dateOfTransaction){
         String currencyFromString = currencyFrom.name().toLowerCase();
         String currencyToString = currencyTo.name().toLowerCase();
 
-        double exchangeRate;
         try {
-            exchangeRate = getExchangeRate(dateOfTransaction, currencyFromString, currencyToString, BASE_URL);
-            return amount.multiply(BigDecimal.valueOf(exchangeRate)).setScale(2, RoundingMode.HALF_UP);
+            return BigDecimal.valueOf(getExchangeRate(dateOfTransaction, currencyFromString, currencyToString, BASE_URL));
         } catch (ExternalServiceException e) {
             log.warn("Error while getting exchange rate for currencies from : {} to : {}, from base url, retrying with fallback url",
                     currencyFromString, currencyToString);
         }
-        exchangeRate = getExchangeRate(dateOfTransaction, currencyFromString, currencyToString, FALLBACK_URL);
-        return amount.multiply(BigDecimal.valueOf(exchangeRate)).setScale(2, RoundingMode.HALF_UP);
+        return BigDecimal.valueOf(getExchangeRate(dateOfTransaction, currencyFromString, currencyToString, FALLBACK_URL));
     }
 
     private double getExchangeRate(LocalDate dateOfTransaction, String currencyFromString, String currencyToString, String url) {
