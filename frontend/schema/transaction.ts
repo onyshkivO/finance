@@ -7,6 +7,7 @@ export const CreateTransactionSchema = z.object({
     category: z.string(),
     cashbox: z.string(),
     currency: z.string(),
+    coefficient: z.coerce.number().positive().multipleOf(0.01),
     type: z.union([z.literal("income"), z.literal("expense")]),
 });
 

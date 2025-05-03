@@ -12,7 +12,7 @@ export async function CreateTransaction(form: CreateTransactionSchemaType) {
         throw new Error(parsedBody.error.message);
     }
 
-    const { amount, category, date, description, type, currency, cashbox } = parsedBody.data;
+    const { amount, category, date, description, type, currency, cashbox, coefficient } = parsedBody.data;
     
     try {
         const response = await clientApi.post("/transaction", {
@@ -24,6 +24,7 @@ export async function CreateTransaction(form: CreateTransactionSchemaType) {
             description: description || null,
             currency: currency,
             transactionDate: format(date, 'dd-MM-yyyy'),
+            coefficient: coefficient,
             cashbox:{ 
                 id: cashbox
             }
@@ -83,9 +84,10 @@ export async function UpdateTransaction(id: string, form: CreateTransactionSchem
     if (!parsedBody.success) {
         throw new Error(parsedBody.error.message);
     }
-
-    const { amount, category, date, description, type, currency } = parsedBody.data;
-
+    console.log("form", form);
+    console.log("parsedBody", parsedBody);
+    const { amount, category, date, description, type, currency, cashbox, coefficient } = parsedBody.data;
+    console.log("cashbox", cashbox);
     try {
         const response = await clientApi.put(`/transaction/${id}`, {
             category: {
@@ -95,6 +97,10 @@ export async function UpdateTransaction(id: string, form: CreateTransactionSchem
             amount: amount,
             description: description || null,
             currency: currency,
+            coefficient: coefficient,
+            cashbox:{ 
+                id: cashbox
+            },
             transactionDate: format(date, 'dd-MM-yyyy')
         });
 

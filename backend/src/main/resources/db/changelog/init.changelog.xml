@@ -477,4 +477,23 @@
         </createTable>
     </changeSet>
 
+    <changeSet id="add-coefficient-and-coefficient_currency-columns-to-transaction" author="onyshkiv" dbms="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="transaction"/>
+                <not>
+                    <columnExists tableName="transaction" columnName="coefficient_currency"/>
+                    <columnExists tableName="transaction" columnName="coefficient"/>
+                </not>
+            </and>
+        </preConditions>
+
+        <addColumn tableName="transaction">
+            <column name="coefficient" type="DECIMAL(10,2)"/>
+        </addColumn>
+        <addColumn tableName="transaction">
+            <column name="coefficient_currency" type="currency_enum"/>
+        </addColumn>
+
+    </changeSet>
 </databaseChangeLog>

@@ -7,4 +7,7 @@ import java.time.LocalDate;
 
 public interface CurrencyService {
     BigDecimal convert(BigDecimal amount, Currency currencyFrom, Currency currencyTo, LocalDate dateOfTransaction);
+
+    BigDecimal getExchangeRate(Currency currencyFrom, Currency currencyTo, LocalDate dateOfTransaction);
+
 }

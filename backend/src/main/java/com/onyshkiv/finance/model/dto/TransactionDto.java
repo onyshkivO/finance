@@ -41,6 +41,8 @@ public class TransactionDto {
 
     private CashboxResponse cashbox;
 
+    private BigDecimal coefficient;
+
     @NotNull(message = "invalid transaction date")
     @DateTimeFormat(pattern = "dd-MM-yyyy")
     @JsonFormat(pattern = "dd-MM-yyyy")
