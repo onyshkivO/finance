@@ -33,9 +33,9 @@ function UserIcon() {
                         <span className="text-lg font-medium text-muted-foreground">{user.login}</span>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                        <DropdownMenuItem asChild className="cursor-pointer">
+                        {/* <DropdownMenuItem asChild className="cursor-pointer">
                             <Link href="/profile">Profile</Link>
-                        </DropdownMenuItem>
+                        </DropdownMenuItem> */}
                         <DropdownMenuItem onClick={logoutAction} className="cursor-pointer">
                             Logout
                         </DropdownMenuItem>

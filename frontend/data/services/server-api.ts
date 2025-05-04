@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 const serverApi = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:80",
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || "http://13.60.241.29:80",
   withCredentials: true,
 });
 

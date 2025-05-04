@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 
 import { registerUserAction } from "@/data/actions/auth-actions";
 import { BackendErrors } from "@/components/custom/auth_errors";
@@ -28,10 +28,11 @@ const INITIAL_STATE = {
 export function SignupForm() {
   const [formState, formAction] = useActionState(registerUserAction, INITIAL_STATE);
 
-  console.log("## will render on client ##");
-  console.log(formState);
-  console.log("###########################");
-  
+  useEffect(() => {
+        if (formState?.data) {
+          window.location.href = "/"; 
+        }
+      }, [formState]);
   return (
     <div className="w-full max-w-md">
       <form action={formAction}>

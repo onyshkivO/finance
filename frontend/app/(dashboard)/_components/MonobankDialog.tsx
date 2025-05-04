@@ -123,7 +123,9 @@ function MonobankDialog({ trigger }: Props) {
                         <div className="text-center">
                             <p className="mb-4">Please scan the QR code or click the link below to connect your Monobank account:</p>
                             <div className="flex justify-center mb-4">
-                                <QRCodeSVG value={authData.confirmUrl} size={200} />
+                                <div className="bg-white p-4 rounded-md shadow-md">
+                                    <QRCodeSVG value={authData.confirmUrl} size={200} />
+                                </div>
                             </div>
                             <Button
                                 variant="outline"

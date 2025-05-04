@@ -8,7 +8,7 @@ import { CURRENCIES } from "@/lib/types";
 const config = {
     maxAge: 60 * 60 * 24 * 7,
     path: "/",
-    domain: process.env.HOST ?? "localhost",
+    // domain: "localhost",
     secure: process.env.NODE_ENV === "development",
 };
 
@@ -90,7 +90,11 @@ export async function registerUserAction(prevState: any, formData: FormData) {
     const cookieStore = await cookies();
     cookieStore.set("userData", JSON.stringify(userData), config);
 
-    redirect("/");
+    return {
+        success: true,
+        data: response.data
+      };
+    // redirect("/");
 }
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function loginUserAction(prevState: any, formData: FormData) {
@@ -112,7 +116,6 @@ export async function loginUserAction(prevState: any, formData: FormData) {
     }
 
     const response = await loginUserService(validation.data);
-
     if (!response || response.error) {
         return {
             ...prevState,
@@ -131,10 +134,17 @@ export async function loginUserAction(prevState: any, formData: FormData) {
         currency: userCurrency,
         id: response.data.id
     };
+    console.log("userData", userData);
+    
     const cookieStore = await cookies();
     cookieStore.set("userData", JSON.stringify(userData), config);
-
-    redirect("/");
+    console.log("cookieStore.get(userData)",cookieStore.get("userData"));
+    
+    return {
+        success: true,
+        data: response.data
+      };
+    // redirect("/");
 }
 
 export async function logoutAction() {
