@@ -193,7 +193,8 @@ public class MonobankServiceImpl implements MonobankService {
         TransactionType type = transactionDetails.getAmount().compareTo(BigInteger.ZERO) > 0 ? TransactionType.INCOME : EXPENSE;
         BigDecimal amount = new BigDecimal(transactionDetails.getAmount()).divide(BigDecimal.valueOf(100)).abs();
         Optional<UUID> categoryIdOptional = categoryMccRepository.getCategoryIdByMccAndUserIdAndType(transactionDetails.getMcc(), userId, type);
-        Currency transactionCurrency = convertCurrencyCodeToCurrency(transactionDetails.getCurrencyCode());
+//        Currency transactionCurrency = convertCurrencyCodeToCurrency(transactionDetails.getCurrencyCode());
+        Currency transactionCurrency = convertCurrencyCodeToCurrency(monobankAccount.getCurrencyCode());
         User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found with id " + userId));
 
         Transaction transaction = Transaction.builder()
