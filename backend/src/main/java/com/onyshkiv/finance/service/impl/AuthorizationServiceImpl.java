@@ -225,7 +225,7 @@ public void sendResetLink(String email) {
 
     tokenRepository.save(resetToken);
 
-    String resetLink = frontendUrl + "/reset-password?token=" + token;
+    String resetLink = frontendUrl + "/reset?token=" + token;
 
     try {
         MimeMessage message = mailSender.createMimeMessage();
