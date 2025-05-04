@@ -68,7 +68,7 @@ public class MonobankServiceImpl implements MonobankService {
     private static final String SET_WEBHOOK = "/personal/corp/webhook";
     private static final String CLIENT_INFO = "/personal/client-info";
 
-    private static final String BASIC_URI = "https://61cd-178-212-97-140.ngrok-free.app";
+    private static final String BASIC_URI = "http://13.60.241.29:80";
     private static final String CONFIRM_WEBHOOK_URL = BASIC_URI + "/mono/confirm";
     private static final String TRANSACTION_WEBHOOK_URL = BASIC_URI + "/mono/transaction";
     private final UserRepository userRepository;
