@@ -3,7 +3,7 @@ import axios from "axios";
 import Cookies from "js-cookie";
 
 const clientApi = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || "http://13.60.241.29:80",
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || "https://back.fintracker.click",
   withCredentials: true,
 });
 
