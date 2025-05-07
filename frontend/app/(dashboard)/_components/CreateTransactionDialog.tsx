@@ -87,9 +87,9 @@ function CreateTransactionDialog({ trigger, type, user }: Props) {
                     console.log("value", value);
                     console.log("user?.currency.code", user?.currency.code);
                     const rate = data[value.toLowerCase()]?.[(user?.currency.code as string).toLowerCase()];
-                    console.log("rate", rate);
                     if (rate) {
-                        form.setValue("coefficient", rate);
+                        const roundedRate = Math.round(rate * 100) / 100;
+                        form.setValue("coefficient", roundedRate);
                     }
                 });
         },

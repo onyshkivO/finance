@@ -90,7 +90,8 @@ function UpdateTransactionDialog({ transaction, open, setOpen }: Props) {
                 .then((data) => {
                     const rate = data[value.toLowerCase()]?.[(userCurrency as string).toLowerCase()];
                     if (rate) {
-                        form.setValue("coefficient", rate);
+                        const roundedRate = Math.round(rate * 100) / 100;
+                        form.setValue("coefficient", roundedRate);
                     }
                 });
         },
