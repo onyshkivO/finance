@@ -25,8 +25,8 @@ function DeleteTransactionDialog({ open, setOpen, transactionId }: Props) {
                 queryKey: ["transactions"],
             });
         },
-        onError: () => {
-            toast.error("Failed to delete transaction", {
+        onError: (error) => {
+            toast.error("Failed to delete transaction. " + error.message, {
                 id: transactionId,
             });
         },

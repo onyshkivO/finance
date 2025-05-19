@@ -122,7 +122,7 @@ function CreateTransactionDialog({ trigger, type, user }: Props) {
         },
         onError: (error) => {
             console.error("Transaction creation failed:", error);
-            toast.error("Failed to create transaction. Please try again.", {
+            toast.error("Failed to create transaction. " + error.message, {
                 id: "create-transaction",
             });
         },

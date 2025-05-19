@@ -1,6 +1,13 @@
 import { CreateCategorySchema, CreateCategorySchemaType } from "@/schema/categories";
 import clientApi from "@/data/services/client-api";
 import {Category} from "@/lib/types";
+
+function extractErrorMessage(error: any): string {
+    if (error?.response?.data?.message) {
+      return error.response.data.message;
+    }
+    return "Internal server error";
+  }
 // category-service.ts
 export async function getUserCategoriesByType(
     type: string,
@@ -16,14 +23,14 @@ export async function getUserCategoriesByType(
     } catch (error) {
         console.error("Failed to fetch categories:", error);
         config?.onError?.(error);
-        throw error;
+        throw new Error(extractErrorMessage(error));
     }
  }
 
 export async function CreateCategory(form: CreateCategorySchemaType) {
     const parsedBody = CreateCategorySchema.safeParse(form);
     if (!parsedBody.success) {
-        throw new Error("bad request");
+        throw new Error(parsedBody.error.message);
     }
 
     const { name, icon, type, mccCodes } = parsedBody.data;
@@ -39,7 +46,7 @@ export async function CreateCategory(form: CreateCategorySchemaType) {
         return response.data;
     } catch (error) {
         console.error("Error creating category:", error);
-        throw new Error("Internal server error");
+        throw new Error(extractErrorMessage(error));
     }
 }
 
@@ -53,19 +60,14 @@ export async function DeleteCategory(id: string) {
         return response.data;
     } catch (error) {
         console.error("Error creating category:", error);
-        throw new Error("Internal server error");
+        throw new Error(extractErrorMessage(error));
     }
 }
 
 export async function UpdateCategory(id: string, form: CreateCategorySchemaType) {
-    console.log("form", form);
-    console.log("form.icon", form.icon);
-    console.log("form", form.name);
-    console.log("form.type", form.type);
-    console.log("form.mccCodes", form.mccCodes);
+
     const parsedBody = CreateCategorySchema.safeParse(form);
-    console.log("parsedBody", parsedBody);
-    console.log("parsedBody", parsedBody.success);
+
     if (!parsedBody.success) {
         throw new Error(parsedBody.error.message);
     }
@@ -83,6 +85,6 @@ export async function UpdateCategory(id: string, form: CreateCategorySchemaType)
         return response.data;
     } catch (error) {
         console.error("Error updating category:", error);
-        throw new Error("Internal server error");
+        throw new Error(extractErrorMessage(error));
     }
 }

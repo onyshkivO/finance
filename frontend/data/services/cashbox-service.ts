@@ -4,6 +4,13 @@ import { CreateCashboxSchema, CreateCashboxSchemaType, CreateTransferSchema, Cre
 
 import { format } from "date-fns";
 
+function extractErrorMessage(error: any): string {
+  if (error?.response?.data?.message) {
+    return error.response.data.message;
+  }
+  return "Internal server error";
+}
+
 export async function CreateCashbox(form: CreateCashboxSchemaType) {
     const parsedBody = CreateCashboxSchema.safeParse(form);
     if (!parsedBody.success) {
@@ -22,7 +29,7 @@ export async function CreateCashbox(form: CreateCashboxSchemaType) {
         return response.data;
     } catch (error) {
         console.error("Error creating cashbox:", error);
-        throw new Error("Internal server error");
+        throw new Error(extractErrorMessage(error));
     }
 }
 
@@ -61,7 +68,7 @@ export async function CreateTransfer(form: CreateTransferSchemaType) {
         return response.data;
     } catch (error) {
         console.error("Error creating cashbox:", error);
-        throw error;
+        throw new Error(extractErrorMessage(error));
     }
 }
 
@@ -83,6 +90,6 @@ export async function UpdateCashbox(form: CreateCashboxSchemaType, id: string) {
         return response.data;
     } catch (error) {
         console.error("Error creating cashbox:", error);
-        throw new Error("Internal server error");
+        throw new Error(extractErrorMessage(error));
     }
 }

@@ -51,8 +51,9 @@ function UpdateCashboxDialog({ cashbox, open, setOpen, successCallback }: Props)
             });
             setOpen(false);
         },
-        onError: () => {
-            toast.error("Something went wrong", {
+        onError: (error) => {
+            
+            toast.error("Failed to update cashbox. " + error.message, {
                 id: "update-cashbox",
             });
         },

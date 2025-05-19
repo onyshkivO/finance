@@ -2,7 +2,12 @@
 import clientApi from "@/data/services/client-api";
 import { normalizeCashboxStats, normalizeCategoryStats } from "@/lib/helpers";
 import { BackendCashboxStats, BackendCategoryStats, BalanceStats, CashboxStatsType, CategoryStatsType, HistoryStatsType, Period, Timeframe } from "@/lib/types";
-
+function extractErrorMessage(error: any): string {
+    if (error?.response?.data?.message) {
+      return error.response.data.message;
+    }
+    return "Internal server error";
+  }
 export async function getBalanceStats(
     from: Date,
     to: Date,
@@ -24,7 +29,7 @@ export async function getBalanceStats(
     } catch (error) {
         console.error("Failed to fetch balance stats:", error);
         config?.onError?.(error);
-        throw error;
+        throw new Error("Failed to fetch balance stats");
     }
 }
 
@@ -49,9 +54,9 @@ export async function getCategoryStats(
         config?.onSuccess?.(normalizedData);
         return normalizedData;
     } catch (error) {
-        console.error("Failed to fetch balance stats:", error);
+        console.error("Failed to fetch getCategoryStats:", error);
         config?.onError?.(error);
-        throw error;
+        throw new Error("Failed to fetch category stats");
     }
 }
 
@@ -79,7 +84,7 @@ export async function getCashboxStats(
     } catch (error) {
         console.error("Failed to fetch balance stats:", error);
         config?.onError?.(error);
-        throw error;
+        throw new Error("Failed to fetch balance stats");
     }
 }
 
@@ -97,7 +102,7 @@ export async function getHistoryPeriods(
     } catch (error) {
         console.error("Failed to fetch history periods:", error);
         config?.onError?.(error);
-        throw error;
+        throw new Error("Failed to fetch history periods");
     }
 }
 
@@ -122,6 +127,6 @@ export async function getHistoryData(
     } catch (error) {
         console.error("Failed to fetch history stats:", error);
         config?.onError?.(error);
-        throw error;
+        throw new Error("Failed to fetch history stats");
     }
 }

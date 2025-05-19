@@ -4,7 +4,12 @@ import { Transaction, TransactionDtoBackend, UserData } from "@/lib/types";
 import { CreateTransactionSchema, CreateTransactionSchemaType } from "@/schema/transaction";
 import { format } from "date-fns";
 import Cookies from "js-cookie";
-
+function extractErrorMessage(error: any): string {
+    if (error?.response?.data?.message) {
+      return error.response.data.message;
+    }
+    return "Internal server error";
+  }
 export async function CreateTransaction(form: CreateTransactionSchemaType) {
     console.log("form", form);
     const parsedBody = CreateTransactionSchema.safeParse(form);
@@ -32,8 +37,8 @@ export async function CreateTransaction(form: CreateTransactionSchemaType) {
 
         return response.data;
     } catch (error) {
-        console.error("Error creating екфтіфсешщт:", error);
-        throw new Error("Internal server error");
+        console.error("Error creating transaction:", error);
+        throw new Error(extractErrorMessage(error));
     }
 }
 
@@ -75,7 +80,7 @@ export async function fetchUserTransactionsByDateRange(from: Date, to: Date): Pr
         return response.data;
     } catch (error) {
         console.error("Error deleting transaction:", error);
-        throw new Error("Internal server error");
+        throw new Error(extractErrorMessage(error));
     }
 }
 
@@ -107,6 +112,6 @@ export async function UpdateTransaction(id: string, form: CreateTransactionSchem
         return response.data;
     } catch (error) {
         console.error("Error updating transaction:", error);
-        throw new Error("Internal server error");
+        throw new Error(extractErrorMessage(error));
     }
 }

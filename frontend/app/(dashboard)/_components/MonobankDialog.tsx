@@ -45,7 +45,7 @@ function MonobankDialog({ trigger }: Props) {
             queryClient.invalidateQueries({ queryKey: ['monobank-cards'] });
         },
         onError: (error) => {
-            toast.error("Failed to activate card monitoring");
+            toast.error("Failed to activate card monitoring. Please try again later");
             console.error(error);
         },
         onSettled: () => {
@@ -60,7 +60,7 @@ function MonobankDialog({ trigger }: Props) {
             queryClient.invalidateQueries({ queryKey: ['monobank-cards'] });
         },
         onError: (error) => {
-            toast.error("Failed to deactivate card monitoring");
+            toast.error("Failed to deactivate card monitoring. Please try again later");
             console.error(error);
         },
         onSettled: () => {
