@@ -51,8 +51,8 @@ function CreateCashboxDialog({ successCallback, trigger, defaultCurrency }: Prop
             });
             setOpen((prev) => !prev);
         },
-        onError: () => {
-            toast.error("Something went wrong", {
+        onError: (error) => {
+            toast.error("Failed to create cashbox. " + error.message, {
                 id: "create-cashbox",
             });
         },

@@ -2,6 +2,13 @@
 import clientApi from "@/data/services/client-api";
 import { MonobankAccount, MononbakAuth } from "@/lib/types";
 
+function extractErrorMessage(error: any): string {
+    if (error?.response?.data?.message) {
+      return error.response.data.message;
+    }
+    return "Internal server error";
+  }
+
 export async function getAccessUrl(
     config?: {
         onSuccess?: (data: MononbakAuth) => void;
@@ -17,7 +24,7 @@ export async function getAccessUrl(
     } catch (error) {
         console.error("Failed to fetch mono/request:", error);
         config?.onError?.(error);
-        throw error;
+        throw new Error("Failed to fetch monobank url");
     }
 }
 
@@ -34,9 +41,9 @@ export async function getMonobankCards(
         config?.onSuccess?.(response.data);
         return response.data;
     } catch (error) {
-        console.error("Failed to fetch >(`/mono/account:", error);
+        console.error("Failed to fetch /mono/account:", error);
         config?.onError?.(error);
-        throw error;
+        throw new Error("Failed to fetch monobank cards");
     }
 }
 
@@ -46,8 +53,8 @@ export async function activateMonobankCard(cardId: string) {
          const response = await clientApi.put(`/mono/account/monitor/${cardId}`)
          console.log(response);
         } catch (error) {
-        console.error("Error creating category:", error);
-        throw new Error("Internal server error");
+        console.error("Failed to activate card:", error);
+        throw new Error("Failed activate card");
     }
 }
 
@@ -57,7 +64,7 @@ export async function deactivateMonobankCard(cardId: string) {
          const response = await clientApi.put(`/mono/account/unmonitor/${cardId}`)
          console.log(response);
         } catch (error) {
-        console.error("Error creating category:", error);
-        throw new Error("Internal server error");
+        console.error("Failed deactivate card:", error);
+        throw new Error("Failed deactivate card");
     }
 }

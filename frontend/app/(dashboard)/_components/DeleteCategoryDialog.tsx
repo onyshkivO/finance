@@ -32,8 +32,8 @@ function DeleteCategoryDialog({ category, open, setOpen, successCallback }: Prop
             successCallback();
             setOpen(false);
         },
-        onError: () => {
-            toast.error("Something went wrong", {
+        onError: (error) => {
+            toast.error("Failed to delete cashbox. " + error.message, {
                 id: "delete-category",
             });
         },

@@ -59,8 +59,8 @@ function CreateCategoryDialog({ type, successCallback, trigger }: Props) {
             });
             setOpen((prev) => !prev);
         },
-        onError: () => {
-            toast.error("Something went wrong", {
+        onError: (error) => {
+            toast.error("Failed to create category. " + error.message, {
                 id: "create-category",
             });
         },

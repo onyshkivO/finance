@@ -86,7 +86,7 @@ export function CurrencyComboBox({ baseCurrency }: CurrencyComboBoxProps) {
         },
         onError: (e) => {
             console.error(e);
-            toast.error("Failed to update currency", {
+            toast.error("Failed to update currency. "+e.message, {
                 id: "update-currency",
             });
         },

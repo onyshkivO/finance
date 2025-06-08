@@ -131,7 +131,7 @@ function UpdateTransactionDialog({ transaction, open, setOpen }: Props) {
         },
         onError: (error) => {
             console.error("Transaction update failed:", error);
-            toast.error("Failed to update transaction. Please try again.", {
+            toast.error("Failed to update transaction. " + error.message, {
                 id: "update-transaction",
             });
         },
