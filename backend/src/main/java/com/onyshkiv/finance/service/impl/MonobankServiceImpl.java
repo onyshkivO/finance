@@ -8,30 +8,14 @@ import com.onyshkiv.finance.model.dto.monobank.MonobankCardResponse;
 import com.onyshkiv.finance.model.dto.monobank.MonobankClientDto;
 import com.onyshkiv.finance.model.dto.monobank.StatementItemDetailsDto;
 import com.onyshkiv.finance.model.dto.monobank.StatementItemDto;
-import com.onyshkiv.finance.model.entity.Cashbox;
-import com.onyshkiv.finance.model.entity.Category;
-import com.onyshkiv.finance.model.entity.Currency;
-import com.onyshkiv.finance.model.entity.MonobankAccount;
-import com.onyshkiv.finance.model.entity.MonobankAuth;
-import com.onyshkiv.finance.model.entity.Transaction;
-import com.onyshkiv.finance.model.entity.TransactionType;
-import com.onyshkiv.finance.model.entity.User;
-import com.onyshkiv.finance.repository.CashboxRepository;
-import com.onyshkiv.finance.repository.CategoryMccRepository;
-import com.onyshkiv.finance.repository.MonobankAccountRepository;
-import com.onyshkiv.finance.repository.MonobankAuthRepository;
-import com.onyshkiv.finance.repository.TransactionRepository;
-import com.onyshkiv.finance.repository.UserRepository;
+import com.onyshkiv.finance.model.entity.*;
+import com.onyshkiv.finance.repository.*;
 import com.onyshkiv.finance.security.SecurityContextHelper;
 import com.onyshkiv.finance.service.MonobankService;
 import com.onyshkiv.finance.service.TransactionService;
 import com.onyshkiv.finance.util.ApplicationMapper;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
+import okhttp3.*;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.PEMParser;
@@ -127,7 +111,7 @@ public class MonobankServiceImpl implements MonobankService {
     public MonobankAuthDto requestAccessAndStore() {
         UUID loggedInUserId = securityContextHelper.getLoggedInUser().getId();
         Optional<MonobankAuth> monobankAuthFromDb = monobankAuthRepository.findByUserId(loggedInUserId);
-        if  (monobankAuthFromDb.isPresent()){
+        if (monobankAuthFromDb.isPresent()) {
             return MonobankAuthDto.builder()
                     .isConnected(monobankAuthFromDb.get().isActivated())
                     .acceptUrl(monobankAuthFromDb.get().getAcceptUrl())
@@ -248,15 +232,22 @@ public class MonobankServiceImpl implements MonobankService {
 
             monobankAccounts.forEach(account -> {
                 Currency accountCurrency = convertCurrencyCodeToCurrency(account.getCurrencyCode());
-                Cashbox cashbox = Cashbox.builder()
-                        .id(UUID.randomUUID())
-                        .userId(userId)
-                        .currency(accountCurrency)
-                        .name(account.getType().name().toLowerCase() + " " + accountCurrency.name() + " monobank card")
-                        .balance(account.getBalance())
-                        .deletedAt(OffsetDateTime.now())
-                        .build();
-                cashboxRepository.save(cashbox);
+                String cahsboxName = account.getType().name().toLowerCase() + " " + accountCurrency.name() + " monobank card";
+                Cashbox cashbox;
+                Optional<Cashbox> cashboxFromDb = cashboxRepository.findByUserIdAndName(userId, cahsboxName);
+                if (cashboxFromDb.isEmpty()) {
+                     cashbox = Cashbox.builder()
+                            .id(UUID.randomUUID())
+                            .userId(userId)
+                            .currency(accountCurrency)
+                            .name(cahsboxName)
+                            .balance(account.getBalance())
+                            .deletedAt(OffsetDateTime.now())
+                            .build();
+                    cashboxRepository.save(cashbox);
+                } else {
+                    cashbox = cashboxFromDb.get();
+                }
                 account.setCashbox(cashbox);
                 monobankAccountRepository.upsertMonobankAccount(account);
             });
