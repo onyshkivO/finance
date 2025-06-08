@@ -54,7 +54,7 @@ export async function activateMonobankCard(cardId: string) {
 export async function deactivateMonobankCard(cardId: string) {
 
     try {
-         const response = await clientApi.put(`/mono/unmonitor/monitor/${cardId}`)
+         const response = await clientApi.put(`/mono/account/unmonitor/${cardId}`)
          console.log(response);
         } catch (error) {
         console.error("Error creating category:", error);
